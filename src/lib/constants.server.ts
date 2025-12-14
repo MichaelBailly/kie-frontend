@@ -1,0 +1,1 @@
+export const KIE_API_KEY = process.env.KIE_API_KEY ?? '';
