@@ -1,3 +1,113 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #d1d5db;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+	::-webkit-scrollbar-thumb {
+		background: #4b5563;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: #6b7280;
+	}
+}
+
+/* Custom range input for audio player */
+input[type='range'] {
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+	height: 6px;
+	border-radius: 3px;
+	background: #e5e7eb;
+}
+
+input[type='range']::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #4f46e5;
+	margin-top: -4px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	transition: transform 0.15s ease;
+}
+
+input[type='range']::-webkit-slider-thumb:hover {
+	transform: scale(1.1);
+}
+
+input[type='range']::-moz-range-track {
+	height: 6px;
+	border-radius: 3px;
+	background: #e5e7eb;
+}
+
+input[type='range']::-moz-range-thumb {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #4f46e5;
+	border: none;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	transition: transform 0.15s ease;
+}
+
+input[type='range']::-moz-range-thumb:hover {
+	transform: scale(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+	input[type='range']::-webkit-slider-runnable-track {
+		background: #374151;
+	}
+
+	input[type='range']::-moz-range-track {
+		background: #374151;
+	}
+}
+
+/* Dark mode custom properties */
+:root {
+	color-scheme: light dark;
+}
+
+/* Animation for pulsing status indicator */
+@keyframes pulse-ring {
+	0% {
+		transform: scale(0.8);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+.pulse-ring {
+	animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
