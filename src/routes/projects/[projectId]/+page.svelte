@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import GenerationForm from '$lib/components/GenerationForm.svelte';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { browser } from '$app/environment';
 
 	let { data }: { data: LayoutData } = $props();
@@ -14,39 +14,49 @@
 	let style = $state('');
 	let lyrics = $state('');
 
+	// Track initialization to prevent saving during initial load
+	let isInitializing = $state(true);
+
 	// Get latest generation for initial pre-fill
 	let latestGeneration = $derived(
 		data.activeProject.generations.length > 0 ? data.activeProject.generations[0] : null
 	);
 
-	// On mount: restore from sessionStorage or pre-fill from latest generation
+	// On mount or project change: restore from sessionStorage or pre-fill from latest generation
 	$effect(() => {
 		if (!browser) return;
 
+		isInitializing = true;
+
+		// Check for saved form state specific to this project
 		const saved = sessionStorage.getItem(storageKey);
 		if (saved) {
 			try {
 				const parsed = JSON.parse(saved);
-				title = parsed.title ?? '';
-				style = parsed.style ?? '';
-				lyrics = parsed.lyrics ?? '';
+				// Only use saved state if it has actual content
+				if (parsed.title || parsed.style || parsed.lyrics) {
+					title = parsed.title ?? '';
+					style = parsed.style ?? '';
+					lyrics = parsed.lyrics ?? '';
+					isInitializing = false;
+					return;
+				}
 			} catch {
-				// Invalid JSON, fall back to latest generation
-				title = latestGeneration?.title || '';
-				style = latestGeneration?.style || '';
-				lyrics = latestGeneration?.lyrics || '';
+				// Invalid JSON, fall through to pre-fill from latest generation
 			}
-		} else {
-			// No saved state, pre-fill from latest generation
-			title = latestGeneration?.title || '';
-			style = latestGeneration?.style || '';
-			lyrics = latestGeneration?.lyrics || '';
 		}
+
+		// No saved state (or empty saved state), pre-fill from latest generation
+		title = latestGeneration?.title || '';
+		style = latestGeneration?.style || '';
+		lyrics = latestGeneration?.lyrics || '';
+		
+		isInitializing = false;
 	});
 
-	// Save form state to sessionStorage on every change
+	// Save form state to sessionStorage on every change (but not during initialization)
 	$effect(() => {
-		if (!browser) return;
+		if (!browser || isInitializing) return;
 		sessionStorage.setItem(storageKey, JSON.stringify({ title, style, lyrics }));
 	});
 
@@ -66,6 +76,8 @@
 			const newGeneration = await response.json();
 			// Clear saved form state after successful generation
 			sessionStorage.removeItem(storageKey);
+			// Refresh data to get the latest generation
+			await invalidateAll();
 			// Navigate to the new generation
 			await goto(`/projects/${data.activeProject.id}/generations/${newGeneration.id}`);
 		}

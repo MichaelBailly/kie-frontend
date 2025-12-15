@@ -53,11 +53,30 @@
 	let audio: HTMLAudioElement | undefined = $state();
 	let currentTime = $state(0);
 	let isPlaying = $state(false);
+	let lyricsExpanded = $state(false);
+	let styleExpanded = $state(false);
+	let lyricsCopied = $state(false);
+	let styleCopied = $state(false);
 
 	function handleWaveformSeek(time: number) {
 		if (audio) {
 			audio.currentTime = time;
 			currentTime = time;
+		}
+	}
+
+	async function copyToClipboard(text: string, type: 'lyrics' | 'style') {
+		try {
+			await navigator.clipboard.writeText(text);
+			if (type === 'lyrics') {
+				lyricsCopied = true;
+				setTimeout(() => (lyricsCopied = false), 2000);
+			} else {
+				styleCopied = true;
+				setTimeout(() => (styleCopied = false), 2000);
+			}
+		} catch (err) {
+			console.error('Failed to copy:', err);
 		}
 	}
 </script>
@@ -81,34 +100,15 @@
 		</a>
 	</div>
 
-	<!-- Song title and metadata -->
-	<div class="mb-8">
-		<h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+	<!-- Song title -->
+	<div class="mb-6">
+		<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
 			{song.title}
 		</h1>
-		<div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-			<span>Style: {generation.style}</span>
-			{#if song.duration}
-				<span>
-					Duration: {Math.floor(song.duration / 60)}:{String(Math.floor(song.duration % 60)).padStart(2, '0')}
-				</span>
-			{/if}
-		</div>
 	</div>
 
-	<!-- Cover art (if available) -->
-	{#if song.imageUrl}
-		<div class="mb-8">
-			<img
-				src={song.imageUrl}
-				alt={song.title}
-				class="h-96 w-full rounded-xl object-cover shadow-lg"
-			/>
-		</div>
-	{/if}
-
-	<!-- Audio player and Waveform -->
-	<div class="mb-8">
+	<!-- Audio player and Waveform - PRIMARY FOCUS -->
+	<div class="mb-10">
 		{#if song.streamUrl || song.audioUrl}
 			<audio
 				bind:this={audio}
@@ -134,77 +134,79 @@
 				class="hidden"
 			></audio>
 
-			<!-- Custom player controls -->
-			<div class="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-				<div class="flex items-center gap-4">
-					{#if song.imageUrl}
-						<img src={song.imageUrl} alt={song.title} class="h-20 w-20 shrink-0 rounded-lg object-cover" />
-					{:else}
-						<div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
-							<svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-							</svg>
-						</div>
-					{/if}
-
-					<div class="min-w-0 flex-1">
-						<h3 class="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">{song.title}</h3>
-						<div class="mt-3 flex items-center gap-3">
-							<button
-								onclick={() => {
-									if (audio) {
-										if (audio.paused) audio.play();
-										else audio.pause();
-									}
-								}}
-								class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700"
-							>
-								{#if !isPlaying}
-									<svg class="h-6 w-6 pl-0.5" fill="currentColor" viewBox="0 0 24 24">
-										<path d="M8 5v14l11-7z" />
-									</svg>
-								{:else}
-									<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-										<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-									</svg>
-								{/if}
-							</button>
-
-							<div class="flex flex-1 items-center gap-2">
-								<span class="w-12 text-sm text-gray-500 dark:text-gray-400">
-									{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')}
-								</span>
-								<input
-									type="range"
-									min="0"
-									max={audio?.duration || song.duration || 100}
-									value={currentTime}
-									oninput={(e) => {
-										if (audio) audio.currentTime = parseFloat(e.currentTarget.value);
-									}}
-									class="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 accent-indigo-600 dark:bg-gray-700"
-								/>
-								<span class="w-12 text-sm text-gray-500 dark:text-gray-400">
-									{Math.floor((audio?.duration || song.duration || 0) / 60)}:{String(Math.floor((audio?.duration || song.duration || 0) % 60)).padStart(2, '0')}
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Waveform -->
-			<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-				<h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Waveform</h3>
+			<!-- Waveform - MAIN FOCUS -->
+			<div class="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-800">
 				<Waveform
 					audioUrl={song.audioUrl || song.streamUrl || ''}
-					height={120}
+					height={160}
 					{currentTime}
 					duration={audio?.duration || song.duration || 0}
 					color="#6366f1"
 					backgroundColor="#e5e7eb"
 					onSeek={handleWaveformSeek}
 				/>
+			</div>
+
+			<!-- Playback Controls -->
+			<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+				<div class="flex items-center justify-center gap-6">
+					<button
+						onclick={() => {
+							if (audio) {
+								if (audio.paused) audio.play();
+								else audio.pause();
+							}
+						}}
+						class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700"
+					>
+						{#if !isPlaying}
+							<svg class="h-8 w-8 pl-1" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M8 5v14l11-7z" />
+							</svg>
+						{:else}
+							<svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+							</svg>
+						{/if}
+					</button>
+
+					<div class="flex flex-1 items-center gap-3">
+						<span class="w-14 text-right text-sm font-medium text-gray-600 dark:text-gray-300">
+							{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')}
+						</span>
+						<input
+							type="range"
+							min="0"
+							max={audio?.duration || song.duration || 100}
+							value={currentTime}
+							oninput={(e) => {
+								if (audio) audio.currentTime = parseFloat(e.currentTarget.value);
+							}}
+							class="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 accent-indigo-600 dark:bg-gray-700"
+						/>
+						<span class="w-14 text-sm font-medium text-gray-600 dark:text-gray-300">
+							{Math.floor((audio?.duration || song.duration || 0) / 60)}:{String(Math.floor((audio?.duration || song.duration || 0) % 60)).padStart(2, '0')}
+						</span>
+					</div>
+
+					{#if song.audioUrl}
+						<a
+							href={song.audioUrl}
+							download="{song.title}.mp3"
+							class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+							title="Download track"
+						>
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+								/>
+							</svg>
+						</a>
+					{/if}
+				</div>
 			</div>
 		{:else}
 			<div class="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
@@ -213,36 +215,123 @@
 		{/if}
 	</div>
 
-	<!-- Lyrics -->
-	{#if generation.lyrics}
-		<div class="mb-8">
-			<h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">Lyrics</h2>
-			<div
-				class="whitespace-pre-wrap rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+	<!-- Secondary Details - Collapsible -->
+	<div class="space-y-3">
+		<!-- Style Section -->
+		<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+			<button
+				onclick={() => (styleExpanded = !styleExpanded)}
+				class="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
 			>
-				<p class="text-gray-700 dark:text-gray-300">{generation.lyrics}</p>
-			</div>
-		</div>
-	{/if}
-
-	<!-- Download button -->
-	{#if song.audioUrl}
-		<div class="flex justify-center">
-			<a
-				href={song.audioUrl}
-				download="{song.title}.mp3"
-				class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition-colors hover:bg-indigo-700"
-			>
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-					/>
+				<div class="flex items-center gap-3">
+					<svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+					</svg>
+					<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Style</h2>
+				</div>
+				<svg
+					class="h-5 w-5 text-gray-400 transition-transform {styleExpanded ? 'rotate-180' : ''}"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 				</svg>
-				Download Track
-			</a>
+			</button>
+			{#if styleExpanded}
+				<div class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+					<div class="p-4">
+						<div class="mb-3 flex justify-end">
+							<button
+								onclick={() => copyToClipboard(generation.style, 'style')}
+								class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
+							>
+								{#if styleCopied}
+									<svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+									</svg>
+									Copied!
+								{:else}
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+									</svg>
+									Copy
+								{/if}
+							</button>
+						</div>
+						<p class="text-gray-700 dark:text-gray-300">{generation.style}</p>
+					</div>
+				</div>
+			{/if}
 		</div>
-	{/if}
+
+		<!-- Lyrics Section -->
+		{#if generation.lyrics}
+			<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+				<button
+					onclick={() => (lyricsExpanded = !lyricsExpanded)}
+					class="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+				>
+					<div class="flex items-center gap-3">
+						<svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lyrics</h2>
+					</div>
+					<svg
+						class="h-5 w-5 text-gray-400 transition-transform {lyricsExpanded ? 'rotate-180' : ''}"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+					</svg>
+				</button>
+				{#if lyricsExpanded}
+					<div class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+						<div class="p-4">
+							<div class="mb-3 flex justify-end">
+								<button
+									onclick={() => copyToClipboard(generation.lyrics || '', 'lyrics')}
+									class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
+								>
+									{#if lyricsCopied}
+										<svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+										</svg>
+										Copied!
+									{:else}
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+										</svg>
+										Copy
+									{/if}
+								</button>
+							</div>
+							<p class="whitespace-pre-wrap text-gray-700 dark:text-gray-300">{generation.lyrics}</p>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Cover Image Section -->
+		{#if song.imageUrl}
+			<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+				<div class="p-4">
+					<div class="flex items-center gap-3 mb-3">
+						<svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+						</svg>
+						<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Cover Art</h2>
+					</div>
+					<img
+						src={song.imageUrl}
+						alt={song.title}
+						class="w-full rounded-lg object-cover"
+					/>
+				</div>
+			</div>
+		{/if}
+	</div>
 </div>

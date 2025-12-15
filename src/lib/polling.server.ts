@@ -83,10 +83,12 @@ export async function pollForResults(
 						track1_audio_url: track1.audioUrl,
 						track1_image_url: track1.imageUrl,
 						track1_duration: track1.duration,
-						track2_stream_url: track2.streamAudioUrl,
-						track2_audio_url: track2.audioUrl,
-						track2_image_url: track2.imageUrl,
-						track2_duration: track2.duration,
+					track1_audio_id: track1.id,
+					track2_stream_url: track2.streamAudioUrl,
+					track2_audio_url: track2.audioUrl,
+					track2_image_url: track2.imageUrl,
+					track2_duration: track2.duration,
+					track2_audio_id: track2.id,
 						response_data: JSON.stringify(details.data)
 					});
 					return;
