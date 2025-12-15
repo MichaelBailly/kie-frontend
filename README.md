@@ -169,7 +169,11 @@ The app uses Server-Sent Events for live updates:
 ```typescript
 // Client-side SSE subscription (automatic in layouts)
 const eventSource = new EventSource('/api/sse');
-eventSource.addEventListener('generation_update', handleUpdate);
+eventSource.addEventListener('generation_update', (event) => {
+	// Handle generation updates in real-time
+	const data = JSON.parse(event.data);
+	console.log('Generation updated:', data);
+});
 ```
 
 ### KIE AI Integration
@@ -237,10 +241,11 @@ This creates an optimized build in the `build/` directory.
 # Set environment variables
 export KIE_API_KEY=your_production_api_key
 
-# Start the server
+# Start the server (preview mode)
 bun run preview
-# or
-node build
+
+# Or run the built Node.js server directly
+node build/index.js
 ```
 
 ### Important Production Notes
