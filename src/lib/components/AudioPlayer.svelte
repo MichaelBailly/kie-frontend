@@ -1,67 +1,65 @@
 <script lang="ts">
+	import { audioStore, type AudioTrack } from '$lib/stores/audio.svelte';
+
 	let {
 		src,
 		title = 'Audio Track',
 		imageUrl = '',
-		duration = 0
+		duration = 0,
+		trackId,
+		generationId,
+		projectId
 	}: {
 		src: string;
 		title?: string;
 		imageUrl?: string;
 		duration?: number;
+		trackId: string;
+		generationId: number;
+		projectId: number;
 	} = $props();
 
-	let audio: HTMLAudioElement | undefined = $state();
-	let isPlaying = $state(false);
-	let currentTime = $state(0);
-	let audioDuration = $state(0);
-	let volume = $state(1);
-	let isMuted = $state(false);
+	// Check if this track is currently loaded/playing
+	let isCurrentTrack = $derived(audioStore.isCurrentTrack(trackId));
+	let isPlaying = $derived(audioStore.isTrackPlaying(trackId));
+	let currentTime = $derived(isCurrentTrack ? audioStore.currentTime : 0);
+	let audioDuration = $derived(isCurrentTrack ? audioStore.duration : duration);
+	let volume = $derived(audioStore.volume);
+	let isMuted = $derived(audioStore.isMuted);
 
-	// Sync duration from props
-	$effect(() => {
-		if (duration > 0) {
-			audioDuration = duration;
-		}
-	});
-
-	function togglePlay() {
-		if (!audio) return;
-		if (isPlaying) {
-			audio.pause();
+	function handlePlayPause() {
+		if (isCurrentTrack) {
+			audioStore.toggle();
 		} else {
-			audio.play();
+			// Start playing this track
+			const track: AudioTrack = {
+				id: trackId,
+				generationId,
+				projectId,
+				title,
+				imageUrl: imageUrl || null,
+				streamUrl: null,
+				audioUrl: src,
+				duration
+			};
+			audioStore.play(track);
 		}
-	}
-
-	function handleTimeUpdate() {
-		if (!audio) return;
-		currentTime = audio.currentTime;
-	}
-
-	function handleLoadedMetadata() {
-		if (!audio) return;
-		audioDuration = audio.duration;
 	}
 
 	function handleSeek(e: Event) {
 		const target = e.target as HTMLInputElement;
-		if (!audio) return;
-		audio.currentTime = parseFloat(target.value);
+		if (isCurrentTrack) {
+			audioStore.seek(parseFloat(target.value));
+		}
 	}
 
 	function handleVolumeChange(e: Event) {
 		const target = e.target as HTMLInputElement;
-		if (!audio) return;
-		volume = parseFloat(target.value);
-		audio.volume = volume;
-		isMuted = volume === 0;
+		audioStore.setVolume(parseFloat(target.value));
 	}
 
 	function toggleMute() {
-		if (!audio) return;
-		isMuted = !isMuted;
-		audio.muted = isMuted;
+		audioStore.toggleMute();
 	}
 
 	function formatTime(seconds: number): string {
@@ -75,17 +73,6 @@
 <div
 	class="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
 >
-	<audio
-		bind:this={audio}
-		{src}
-		onplay={() => (isPlaying = true)}
-		onpause={() => (isPlaying = false)}
-		ontimeupdate={handleTimeUpdate}
-		onloadedmetadata={handleLoadedMetadata}
-		onended={() => (isPlaying = false)}
-		preload="metadata"
-	></audio>
-
 	{#if imageUrl}
 		<img src={imageUrl} alt={title} class="h-16 w-16 shrink-0 rounded-lg object-cover" />
 	{:else}
@@ -108,7 +95,7 @@
 		<div class="mt-2 flex items-center gap-3">
 			<!-- Play/Pause button -->
 			<button
-				onclick={togglePlay}
+				onclick={handlePlayPause}
 				class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700"
 			>
 				{#if isPlaying}

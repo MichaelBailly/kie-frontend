@@ -3,6 +3,7 @@
 	import Waveform from '$lib/components/Waveform.svelte';
 	import { getContext } from 'svelte';
 	import type { Generation } from '$lib/types';
+	import { audioStore, type AudioTrack } from '$lib/stores/audio.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -50,18 +51,61 @@
 		return data.song;
 	});
 
-	let audio: HTMLAudioElement | undefined = $state();
-	let currentTime = $state(0);
-	let isPlaying = $state(false);
+	// Use global audio store for playback state
+	let isCurrentTrack = $derived(audioStore.isCurrentTrack(song.id));
+	let isPlaying = $derived(audioStore.isTrackPlaying(song.id));
+	let currentTime = $derived(isCurrentTrack ? audioStore.currentTime : 0);
+	let duration = $derived(isCurrentTrack ? audioStore.duration : (song.duration || 0));
+
 	let lyricsExpanded = $state(false);
 	let styleExpanded = $state(false);
 	let lyricsCopied = $state(false);
 	let styleCopied = $state(false);
 
 	function handleWaveformSeek(time: number) {
-		if (audio) {
-			audio.currentTime = time;
-			currentTime = time;
+		if (isCurrentTrack) {
+			audioStore.seek(time);
+		} else {
+			// Start playing from this position
+			const track: AudioTrack = {
+				id: song.id,
+				generationId: generation.id,
+				projectId: generation.project_id,
+				title: song.title,
+				imageUrl: song.imageUrl,
+				streamUrl: song.streamUrl,
+				audioUrl: song.audioUrl,
+				duration: song.duration
+			};
+			audioStore.play(track);
+			// Small delay to ensure audio is loaded, then seek
+			setTimeout(() => audioStore.seek(time), 100);
+		}
+	}
+
+	function handlePlayPause() {
+		if (isCurrentTrack) {
+			audioStore.toggle();
+		} else {
+			const track: AudioTrack = {
+				id: song.id,
+				generationId: generation.id,
+				projectId: generation.project_id,
+				title: song.title,
+				imageUrl: song.imageUrl,
+				streamUrl: song.streamUrl,
+				audioUrl: song.audioUrl,
+				duration: song.duration
+			};
+			audioStore.play(track);
+		}
+	}
+
+	function handleSeek(e: Event) {
+		const target = e.target as HTMLInputElement;
+		const time = parseFloat(target.value);
+		if (isCurrentTrack) {
+			audioStore.seek(time);
 		}
 	}
 
@@ -110,37 +154,13 @@
 	<!-- Audio player and Waveform - PRIMARY FOCUS -->
 	<div class="mb-10">
 		{#if song.streamUrl || song.audioUrl}
-			<audio
-				bind:this={audio}
-				src={song.audioUrl || song.streamUrl || ''}
-				ontimeupdate={() => {
-					if (audio) currentTime = audio.currentTime;
-				}}
-				onloadedmetadata={() => {
-					if (audio && audio.duration) {
-						song = { ...song, duration: audio.duration };
-					}
-				}}
-				onplay={() => {
-					isPlaying = true;
-				}}
-				onpause={() => {
-					isPlaying = false;
-				}}
-				onended={() => {
-					isPlaying = false;
-				}}
-				preload="metadata"
-				class="hidden"
-			></audio>
-
 			<!-- Waveform - MAIN FOCUS -->
 			<div class="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-800">
 				<Waveform
 					audioUrl={song.audioUrl || song.streamUrl || ''}
 					height={160}
 					{currentTime}
-					duration={audio?.duration || song.duration || 0}
+					{duration}
 					color="#6366f1"
 					backgroundColor="#e5e7eb"
 					onSeek={handleWaveformSeek}
@@ -151,12 +171,7 @@
 			<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 				<div class="flex items-center justify-center gap-6">
 					<button
-						onclick={() => {
-							if (audio) {
-								if (audio.paused) audio.play();
-								else audio.pause();
-							}
-						}}
+						onclick={handlePlayPause}
 						class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700"
 					>
 						{#if !isPlaying}
@@ -177,15 +192,13 @@
 						<input
 							type="range"
 							min="0"
-							max={audio?.duration || song.duration || 100}
+							max={duration || 100}
 							value={currentTime}
-							oninput={(e) => {
-								if (audio) audio.currentTime = parseFloat(e.currentTarget.value);
-							}}
+							oninput={handleSeek}
 							class="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 accent-indigo-600 dark:bg-gray-700"
 						/>
 						<span class="w-14 text-sm font-medium text-gray-600 dark:text-gray-300">
-							{Math.floor((audio?.duration || song.duration || 0) / 60)}:{String(Math.floor((audio?.duration || song.duration || 0) % 60)).padStart(2, '0')}
+							{Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}
 						</span>
 					</div>
 

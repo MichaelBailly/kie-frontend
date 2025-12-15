@@ -6,6 +6,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { audioStore } from '$lib/stores/audio.svelte';
 
 	let { data, children }: { data: LayoutData; children: any } = $props();
 
@@ -96,6 +97,31 @@
 				)
 			}));
 			console.log('Updated generation in local state');
+
+			// Find the updated generation to notify audio store
+			const updatedGen = projects
+				.flatMap((p) => p.generations)
+				.find((g) => g.id === generationId);
+
+			if (updatedGen) {
+				// Notify audio store if track 1 URLs changed
+				if (updatedGen.track1_audio_id && (data.track1_audio_url || data.track1_stream_url)) {
+					audioStore.updateTrackUrls(updatedGen.track1_audio_id, {
+						streamUrl: data.track1_stream_url,
+						audioUrl: data.track1_audio_url,
+						duration: data.track1_duration
+					});
+				}
+
+				// Notify audio store if track 2 URLs changed
+				if (updatedGen.track2_audio_id && (data.track2_audio_url || data.track2_stream_url)) {
+					audioStore.updateTrackUrls(updatedGen.track2_audio_id, {
+						streamUrl: data.track2_stream_url,
+						audioUrl: data.track2_audio_url,
+						duration: data.track2_duration
+					});
+				}
+			}
 		} else {
 			// New generation - refetch the active project's generations
 			console.log('Generation not found, refetching project');
