@@ -83,7 +83,25 @@
 				</div>
 				<div class="space-y-3">
 					<div>
-						<p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Variation 1</p>
+						<div class="mb-2 flex items-center justify-between">
+							<p class="text-sm font-medium text-gray-600 dark:text-gray-400">Variation 1</p>
+							{#if generation.track1_audio_id}
+								<a
+									href="/projects/{generation.project_id}/generations/{generation.id}/song/{generation.track1_audio_id}"
+									class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700"
+								>
+									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+										/>
+									</svg>
+									View with Waveform
+								</a>
+							{/if}
+						</div>
 						<AudioPlayer
 							src={generation.track1_audio_url || generation.track1_stream_url || ''}
 							title="{generation.title} (V1)"
@@ -93,7 +111,25 @@
 					</div>
 					{#if generation.track2_stream_url || generation.track2_audio_url}
 						<div>
-							<p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Variation 2</p>
+							<div class="mb-2 flex items-center justify-between">
+								<p class="text-sm font-medium text-gray-600 dark:text-gray-400">Variation 2</p>
+								{#if generation.track2_audio_id}
+									<a
+										href="/projects/{generation.project_id}/generations/{generation.id}/song/{generation.track2_audio_id}"
+										class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700"
+									>
+										<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+											/>
+										</svg>
+										View with Waveform
+									</a>
+								{/if}
+							</div>
 							<AudioPlayer
 								src={generation.track2_audio_url || generation.track2_stream_url || ''}
 								title="{generation.title} (V2)"

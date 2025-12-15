@@ -10,6 +10,7 @@
 		"@tailwindcss/forms": "^0.5.10",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.1.17",
+		"@types/d3": "^7.4.3",
 		"@types/node": "^24",
 		"@vitest/browser-playwright": "^4.0.15",
 		"bun-types": "^1.3.4",
@@ -44,5 +45,8 @@
 		"test:unit": "bun -b vitest",
 		"test": "bun run test:unit -- --run"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"d3": "^7.9.0"
+	}
 }

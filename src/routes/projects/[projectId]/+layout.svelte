@@ -229,7 +229,7 @@
 		</div>
 
 		<!-- Generation form / details -->
-		<div class="flex-1 overflow-hidden bg-white dark:bg-gray-800">
+		<div class="flex-1 overflow-y-auto bg-white dark:bg-gray-800">
 			{@render children()}
 		</div>
 	</div>

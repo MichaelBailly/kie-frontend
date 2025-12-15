@@ -12,7 +12,8 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"types": [
-                "bun-types"
+                "bun-types",
+                "@types/d3"
             ]
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
