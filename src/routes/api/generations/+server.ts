@@ -71,9 +71,11 @@ async function pollForResults(generationId: number, taskId: string) {
 
 	const poll = async () => {
 		attempts++;
+		console.log(`[Poll #${attempts}] Checking taskId: ${taskId} for generation ${generationId}`);
 
 		try {
 			const details = await getMusicDetails(taskId);
+			console.log(`[Poll #${attempts}] Status: ${details.data?.status}`);
 
 			if (details.code !== 200) {
 				updateGenerationStatus(generationId, 'error', details.msg);
@@ -84,6 +86,7 @@ async function pollForResults(generationId: number, taskId: string) {
 			const { status, errorMessage } = details.data;
 
 			if (isErrorStatus(status)) {
+				console.log(`[Poll #${attempts}] ERROR status detected: ${status}`);
 				updateGenerationStatus(generationId, 'error', errorMessage || status);
 				notifyClients(generationId, 'generation_error', {
 					status: 'error',
@@ -93,11 +96,13 @@ async function pollForResults(generationId: number, taskId: string) {
 			}
 
 			if (isCompleteStatus(status)) {
+				console.log(`[Poll #${attempts}] COMPLETE status detected: ${status}`);
 				const sunoData = details.data.response?.sunoData || [];
 				const track1 = sunoData[0];
 				const track2 = sunoData[1];
 
 				if (track1 && track2) {
+					console.log(`[Poll #${attempts}] Completing generation with both tracks`);
 					completeGeneration(
 						generationId,
 						'success',
@@ -105,13 +110,15 @@ async function pollForResults(generationId: number, taskId: string) {
 							streamUrl: track1.streamAudioUrl,
 							audioUrl: track1.audioUrl,
 							imageUrl: track1.imageUrl,
-							duration: track1.duration
+							duration: track1.duration,
+							audioId: track1.id
 						},
 						{
 							streamUrl: track2.streamAudioUrl,
 							audioUrl: track2.audioUrl,
 							imageUrl: track2.imageUrl,
-							duration: track2.duration
+							duration: track2.duration,
+							audioId: track2.id
 						},
 						JSON.stringify(details.data)
 					);
@@ -142,21 +149,47 @@ async function pollForResults(generationId: number, taskId: string) {
 			const newStatus = statusMap[status] || 'processing';
 			updateGenerationStatus(generationId, newStatus);
 
-			// Check for streaming URLs in first_success
-			if (status === 'FIRST_SUCCESS' && details.data.response?.sunoData?.[0]) {
-				const track1 = details.data.response.sunoData[0];
-				if (track1.streamAudioUrl) {
-					updateGenerationTracks(generationId, {
-						streamUrl: track1.streamAudioUrl,
-						imageUrl: track1.imageUrl
-					});
-				}
-			}
+			// Check for streaming URLs in text_success or first_success
+			if ((status === 'TEXT_SUCCESS' || status === 'FIRST_SUCCESS') && details.data.response?.sunoData) {
+				console.log(`[Poll #${attempts}] Intermediate status with stream URLs: ${status}`);
+				const sunoData = details.data.response.sunoData;
+				const track1 = sunoData[0];
+				const track2 = sunoData[1];
 
-			notifyClients(generationId, 'generation_update', { status: newStatus });
+				if (track1?.streamAudioUrl || track2?.streamAudioUrl) {
+					console.log(`[Poll #${attempts}] Updating stream URLs - Track1: ${!!track1?.streamAudioUrl}, Track2: ${!!track2?.streamAudioUrl}`);
+					updateGenerationTracks(
+						generationId,
+						{
+							streamUrl: track1?.streamAudioUrl,
+							imageUrl: track1?.imageUrl,
+							audioId: track1?.id
+						},
+						{
+							streamUrl: track2?.streamAudioUrl,
+							imageUrl: track2?.imageUrl,
+							audioId: track2?.id
+						}
+					);
+
+					// Notify with stream URLs
+					notifyClients(generationId, 'generation_update', {
+						status: newStatus,
+						track1_stream_url: track1?.streamAudioUrl,
+						track1_image_url: track1?.imageUrl,
+						track2_stream_url: track2?.streamAudioUrl,
+						track2_image_url: track2?.imageUrl
+					});
+					// Don't return - continue polling until final SUCCESS
+				}
+			} else {
+				// Only notify if we didn't already notify with stream URLs above
+				notifyClients(generationId, 'generation_update', { status: newStatus });
+			}
 
 			// Continue polling if not complete and under max attempts
 			if (attempts < maxAttempts) {
+				console.log(`[Poll #${attempts}] Continuing to poll in 5 seconds...`);
 				setTimeout(poll, 5000);
 			} else {
 				updateGenerationStatus(generationId, 'error', 'Generation timed out');

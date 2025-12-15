@@ -32,6 +32,8 @@ db.exec(`
 		track2_audio_url TEXT,
 		track2_image_url TEXT,
 		track2_duration REAL,
+		track1_audio_id TEXT,
+		track2_audio_id TEXT,
 		response_data TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -66,6 +68,8 @@ export interface Generation {
 	track2_audio_url: string | null;
 	track2_image_url: string | null;
 	track2_duration: number | null;
+	track1_audio_id: string | null;
+	track2_audio_id: string | null;
 	response_data: string | null;
 	created_at: string;
 	updated_at: string;
@@ -149,8 +153,8 @@ export function updateGenerationStatus(id: number, status: string, errorMessage?
 
 export function updateGenerationTracks(
 	id: number,
-	track1: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number },
-	track2?: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number },
+	track1: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number; audioId?: string },
+	track2?: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number; audioId?: string },
 	responseData?: string
 ): void {
 	const stmt = db.prepare(`
@@ -159,10 +163,12 @@ export function updateGenerationTracks(
 			track1_audio_url = COALESCE(?, track1_audio_url),
 			track1_image_url = COALESCE(?, track1_image_url),
 			track1_duration = COALESCE(?, track1_duration),
+			track1_audio_id = COALESCE(?, track1_audio_id),
 			track2_stream_url = COALESCE(?, track2_stream_url),
 			track2_audio_url = COALESCE(?, track2_audio_url),
 			track2_image_url = COALESCE(?, track2_image_url),
 			track2_duration = COALESCE(?, track2_duration),
+			track2_audio_id = COALESCE(?, track2_audio_id),
 			response_data = COALESCE(?, response_data),
 			updated_at = CURRENT_TIMESTAMP
 		WHERE id = ?
@@ -172,10 +178,12 @@ export function updateGenerationTracks(
 		track1.audioUrl || null,
 		track1.imageUrl || null,
 		track1.duration || null,
+		track1.audioId || null,
 		track2?.streamUrl || null,
 		track2?.audioUrl || null,
 		track2?.imageUrl || null,
 		track2?.duration || null,
+		track2?.audioId || null,
 		responseData || null,
 		id
 	);
@@ -184,8 +192,8 @@ export function updateGenerationTracks(
 export function completeGeneration(
 	id: number,
 	status: string,
-	track1: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number },
-	track2: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number },
+	track1: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number; audioId: string },
+	track2: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number; audioId: string },
 	responseData: string
 ): void {
 	const stmt = db.prepare(`
@@ -195,10 +203,12 @@ export function completeGeneration(
 			track1_audio_url = ?,
 			track1_image_url = ?,
 			track1_duration = ?,
+			track1_audio_id = ?,
 			track2_stream_url = ?,
 			track2_audio_url = ?,
 			track2_image_url = ?,
 			track2_duration = ?,
+			track2_audio_id = ?,
 			response_data = ?,
 			updated_at = CURRENT_TIMESTAMP
 		WHERE id = ?
@@ -209,10 +219,12 @@ export function completeGeneration(
 		track1.audioUrl,
 		track1.imageUrl,
 		track1.duration,
+		track1.audioId,
 		track2.streamUrl,
 		track2.audioUrl,
 		track2.imageUrl,
 		track2.duration,
+		track2.audioId,
 		responseData,
 		id
 	);

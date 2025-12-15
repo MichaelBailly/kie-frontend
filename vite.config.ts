@@ -7,6 +7,13 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 
+	server: {
+		watch: {
+			// Ignore SQLite database files to prevent dev server restarts during generation
+			ignored: ['**/kie-music.db*']
+		}
+	},
+
 	test: {
 		expect: { requireAssertions: true },
 

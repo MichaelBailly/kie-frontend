@@ -12,6 +12,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 	}
 
 	return {
-		generation
+		generation,
+		activeProject // Pass through so page can access live data
 	};
 };

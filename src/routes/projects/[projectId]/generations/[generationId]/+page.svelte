@@ -1,32 +1,27 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import GenerationForm from '$lib/components/GenerationForm.svelte';
-	import { goto } from '$app/navigation';
+	import type { Generation } from '$lib/types';
+	import GenerationView from '$lib/components/GenerationView.svelte';
+	import { getContext } from 'svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	async function handleNewGeneration(title: string, style: string, lyrics: string) {
-		const response = await fetch('/api/generations', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				projectId: data.activeProject.id,
-				title,
-				style,
-				lyrics
-			})
-		});
+	// Get live activeProject from parent layout context (SSE-updated)
+	const activeProjectContext = getContext<{ current: { id: number; generations: Generation[] } }>('activeProject');
 
-		if (response.ok) {
-			const newGeneration = await response.json();
-			// Navigate to the new generation
-			await goto(`/projects/${data.activeProject.id}/generations/${newGeneration.id}`);
+	// Use live generation from context which receives SSE updates
+	let generation = $derived.by(() => {
+		const generationId = data.generation.id;
+		const liveProject = activeProjectContext?.current;
+		if (liveProject) {
+			const liveGeneration = liveProject.generations.find((g) => g.id === generationId);
+			if (liveGeneration) {
+				return liveGeneration;
+			}
 		}
-	}
+		// Fallback to server-loaded data
+		return data.generation;
+	});
 </script>
 
-<GenerationForm
-	generation={data.generation}
-	onNewGeneration={handleNewGeneration}
-	isEditing={false}
-/>
+<GenerationView {generation} />

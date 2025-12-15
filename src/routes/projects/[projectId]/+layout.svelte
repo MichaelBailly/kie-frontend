@@ -2,7 +2,7 @@
 	import type { LayoutData } from './$types';
 	import type { Project, Generation, SSEMessage } from '$lib/types';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, setContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -24,6 +24,13 @@
 	let activeProjectId = $derived(data.activeProject.id);
 	let activeProject = $derived(projects.find((p) => p.id === activeProjectId) || data.activeProject);
 	let generations = $derived(activeProject?.generations || []);
+
+	// Share live activeProject via context so child pages can access it
+	setContext('activeProject', {
+		get current() {
+			return activeProject;
+		}
+	});
 	
 	// Determine selected generation from URL path
 	let selectedGenerationId = $derived.by(() => {
@@ -73,12 +80,41 @@
 	}
 
 	function updateLocalGeneration(generationId: number, data: Partial<Generation>) {
-		projects = projects.map((project) => ({
-			...project,
-			generations: project.generations.map((gen) =>
-				gen.id === generationId ? { ...gen, ...data } : gen
-			)
-		}));
+		console.log('SSE update for generation', generationId, data);
+		
+		// Check if generation exists in any project
+		const generationExists = projects.some((project) =>
+			project.generations.some((gen) => gen.id === generationId)
+		);
+
+		if (generationExists) {
+			// Update existing generation
+			projects = projects.map((project) => ({
+				...project,
+				generations: project.generations.map((gen) =>
+					gen.id === generationId ? { ...gen, ...data } : gen
+				)
+			}));
+			console.log('Updated generation in local state');
+		} else {
+			// New generation - refetch the active project's generations
+			console.log('Generation not found, refetching project');
+			refetchProjectGenerations(activeProjectId);
+		}
+	}
+
+	async function refetchProjectGenerations(projectId: number) {
+		try {
+			const response = await fetch(`/api/projects/${projectId}`);
+			if (response.ok) {
+				const projectData = await response.json();
+				projects = projects.map((p) =>
+					p.id === projectId ? { ...p, generations: projectData.generations } : p
+				);
+			}
+		} catch (e) {
+			console.error('Failed to refetch generations:', e);
+		}
 	}
 
 	async function createNewProject() {
