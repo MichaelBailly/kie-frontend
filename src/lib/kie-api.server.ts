@@ -13,6 +13,18 @@ export interface GenerateMusicRequest {
 	negativeTags?: string;
 }
 
+export interface ExtendMusicRequest {
+	defaultParamFlag: boolean;
+	audioId: string;
+	prompt: string;
+	style: string;
+	title: string;
+	continueAt: number;
+	model: 'V4' | 'V4_5' | 'V4_5PLUS' | 'V4_5ALL' | 'V5';
+	callBackUrl: string;
+	negativeTags?: string;
+}
+
 export interface GenerateMusicResponse {
 	code: number;
 	msg: string;
@@ -62,6 +74,23 @@ export interface MusicDetailsResponse {
 
 export async function generateMusic(request: GenerateMusicRequest): Promise<GenerateMusicResponse> {
 	const response = await fetch(`${KIE_API_BASE}/generate`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${KIE_API_KEY}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(request)
+	});
+
+	if (!response.ok) {
+		throw new Error(`KIE API error: ${response.status} ${response.statusText}`);
+	}
+
+	return response.json();
+}
+
+export async function extendMusic(request: ExtendMusicRequest): Promise<GenerateMusicResponse> {
+	const response = await fetch(`${KIE_API_BASE}/generate/extend`, {
 		method: 'POST',
 		headers: {
 			Authorization: `Bearer ${KIE_API_KEY}`,

@@ -27,6 +27,9 @@ export interface Generation {
 	track1_audio_id: string | null;
 	track2_audio_id: string | null;
 	response_data: string | null;
+	extends_generation_id: number | null;
+	extends_audio_id: string | null;
+	continue_at: number | null;
 	created_at: string;
 	updated_at: string;
 }

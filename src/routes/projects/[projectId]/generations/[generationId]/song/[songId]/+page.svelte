@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Waveform from '$lib/components/Waveform.svelte';
+	import ExtendSongForm from '$lib/components/ExtendSongForm.svelte';
 	import { getContext } from 'svelte';
 	import type { Generation } from '$lib/types';
 	import { audioStore, type AudioTrack } from '$lib/stores/audio.svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
 
@@ -61,6 +63,7 @@
 	let styleExpanded = $state(false);
 	let lyricsCopied = $state(false);
 	let styleCopied = $state(false);
+	let showExtendForm = $state(false);
 
 	function handleWaveformSeek(time: number) {
 		if (isCurrentTrack) {
@@ -123,6 +126,42 @@
 			console.error('Failed to copy:', err);
 		}
 	}
+
+	async function handleExtend(extendData: {
+		title: string;
+		style: string;
+		lyrics: string;
+		continueAt: number;
+	}) {
+		const response = await fetch('/api/generations/extend', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				projectId: generation.project_id,
+				title: extendData.title,
+				style: extendData.style,
+				lyrics: extendData.lyrics,
+				extendsGenerationId: generation.id,
+				extendsAudioId: song.id,
+				continueAt: extendData.continueAt
+			})
+		});
+
+		if (response.ok) {
+			const newGeneration = await response.json();
+			showExtendForm = false;
+			// Navigate to the new generation page
+			goto(`/projects/${generation.project_id}/generations/${newGeneration.id}`);
+		} else {
+			console.error('Failed to create extend generation');
+		}
+	}
+
+	function formatTime(seconds: number): string {
+		const mins = Math.floor(seconds / 60);
+		const secs = Math.floor(seconds % 60);
+		return `${mins}:${secs.toString().padStart(2, '0')}`;
+	}
 </script>
 
 <div class="mx-auto max-w-5xl p-6">
@@ -143,6 +182,31 @@
 			Back to generation
 		</a>
 	</div>
+
+	<!-- Parent song link (if this is an extended song) -->
+	{#if data.parentGeneration && data.parentSong}
+		<div class="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/30">
+			<div class="flex items-center gap-2">
+				<svg class="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+				</svg>
+				<span class="text-sm text-purple-700 dark:text-purple-300">
+					Extended from
+					<a
+						href="/projects/{data.parentGeneration.project_id}/generations/{data.parentGeneration.id}/song/{data.parentSong.id}"
+						class="font-medium underline hover:text-purple-900 dark:hover:text-purple-100"
+					>
+						{data.parentSong.title}
+					</a>
+					{#if data.continueAt}
+						<span class="text-purple-600 dark:text-purple-400">
+							at {formatTime(data.continueAt)}
+						</span>
+					{/if}
+				</span>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Song title -->
 	<div class="mb-6">
@@ -219,6 +283,17 @@
 							</svg>
 						</a>
 					{/if}
+
+					<!-- Extend Song Button -->
+					<button
+						onclick={() => (showExtendForm = !showExtendForm)}
+						class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600 transition-colors hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900"
+						title="Extend song"
+					>
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+						</svg>
+					</button>
 				</div>
 			</div>
 		{:else}
@@ -227,6 +302,56 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Extend Song Form -->
+	{#if showExtendForm}
+		<div class="mb-10">
+			<ExtendSongForm
+				{generation}
+				{song}
+				onExtend={handleExtend}
+				onCancel={() => (showExtendForm = false)}
+			/>
+		</div>
+	{/if}
+
+	<!-- Extended Songs List -->
+	{#if data.extendedGenerations && data.extendedGenerations.length > 0}
+		<div class="mb-10 rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/30">
+			<h3 class="mb-3 flex items-center gap-2 font-semibold text-green-900 dark:text-green-100">
+				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+				</svg>
+				Extended Versions ({data.extendedGenerations.length})
+			</h3>
+			<div class="space-y-2">
+				{#each data.extendedGenerations as extGen}
+					<a
+						href="/projects/{extGen.project_id}/generations/{extGen.id}"
+						class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm transition-colors hover:bg-green-100 dark:bg-green-900/40 dark:hover:bg-green-800/50"
+					>
+						<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-800">
+							<svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+							</svg>
+						</div>
+						<div class="flex-1">
+							<p class="font-medium text-green-900 dark:text-green-100">{extGen.title}</p>
+							<p class="text-sm text-green-700 dark:text-green-300">
+								{#if extGen.continue_at}
+									Continues from {formatTime(extGen.continue_at)}
+								{/if}
+								· {extGen.status === 'success' ? 'Complete' : extGen.status}
+							</p>
+						</div>
+						<svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+						</svg>
+					</a>
+				{/each}
+			</div>
+		</div>
+	{/if}
 
 	<!-- Secondary Details - Collapsible -->
 	<div class="space-y-3">

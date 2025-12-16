@@ -35,13 +35,19 @@ db.exec(`
 		track1_audio_id TEXT,
 		track2_audio_id TEXT,
 		response_data TEXT,
+		-- Extend song tracking
+		extends_generation_id INTEGER,
+		extends_audio_id TEXT,
+		continue_at REAL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+		FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+		FOREIGN KEY (extends_generation_id) REFERENCES generations(id) ON DELETE SET NULL
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_generations_project_id ON generations(project_id);
 	CREATE INDEX IF NOT EXISTS idx_generations_task_id ON generations(task_id);
+	CREATE INDEX IF NOT EXISTS idx_generations_extends ON generations(extends_generation_id);
 `);
 
 export interface Project {
@@ -71,6 +77,9 @@ export interface Generation {
 	track1_audio_id: string | null;
 	track2_audio_id: string | null;
 	response_data: string | null;
+	extends_generation_id: number | null;
+	extends_audio_id: string | null;
+	continue_at: number | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -119,6 +128,45 @@ export function createGeneration(
 	db.prepare('UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(projectId);
 
 	return generation;
+}
+
+export function createExtendGeneration(
+	projectId: number,
+	title: string,
+	style: string,
+	lyrics: string,
+	extendsGenerationId: number,
+	extendsAudioId: string,
+	continueAt: number
+): Generation {
+	const stmt = db.prepare(`
+		INSERT INTO generations (project_id, title, style, lyrics, status, extends_generation_id, extends_audio_id, continue_at)
+		VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)
+		RETURNING *
+	`);
+	const generation = stmt.get(
+		projectId,
+		title,
+		style,
+		lyrics,
+		extendsGenerationId,
+		extendsAudioId,
+		continueAt
+	) as Generation;
+
+	// Update project's updated_at
+	db.prepare('UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(projectId);
+
+	return generation;
+}
+
+export function getExtendedGenerations(generationId: number, audioId: string): Generation[] {
+	const stmt = db.prepare(`
+		SELECT * FROM generations 
+		WHERE extends_generation_id = ? AND extends_audio_id = ?
+		ORDER BY created_at ASC
+	`);
+	return stmt.all(generationId, audioId) as Generation[];
 }
 
 export function getGeneration(id: number): Generation | undefined {
