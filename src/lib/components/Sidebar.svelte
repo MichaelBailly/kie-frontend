@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Project, Generation } from '$lib/types';
 	import GenerationCard from './GenerationCard.svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	let {
 		project,
@@ -11,6 +12,58 @@
 		generations: Generation[];
 		selectedGenerationId: number | null;
 	} = $props();
+
+	let isEditing = $state(false);
+	let editedName = $state('');
+	let inputElement: HTMLInputElement | undefined = $state();
+
+	// Reset edited name when project changes
+	$effect(() => {
+		editedName = project.name;
+	});
+
+	function startEditing() {
+		isEditing = true;
+		editedName = project.name;
+		// Focus input after it's rendered
+		setTimeout(() => inputElement?.focus(), 0);
+	}
+
+	function cancelEditing() {
+		isEditing = false;
+		editedName = project.name;
+	}
+
+	async function saveProjectName() {
+		const trimmedName = editedName.trim();
+		if (!trimmedName || trimmedName === project.name) {
+			cancelEditing();
+			return;
+		}
+
+		try {
+			const response = await fetch(`/api/projects/${project.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: trimmedName })
+			});
+
+			if (response.ok) {
+				isEditing = false;
+				await invalidateAll();
+			}
+		} catch (error) {
+			console.error('Failed to rename project:', error);
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			saveProjectName();
+		} else if (event.key === 'Escape') {
+			cancelEditing();
+		}
+	}
 </script>
 
 <div
@@ -18,7 +71,38 @@
 >
 	<!-- Header -->
 	<div class="border-b border-gray-200 p-4 dark:border-gray-700">
-		<h3 class="font-semibold text-gray-900 dark:text-gray-100">{project.name}</h3>
+		{#if isEditing}
+			<div class="flex items-center gap-2">
+				<input
+					bind:this={inputElement}
+					bind:value={editedName}
+					onkeydown={handleKeydown}
+					onblur={saveProjectName}
+					type="text"
+					class="min-w-0 flex-1 rounded border-gray-300 bg-white px-2 py-1 text-sm font-semibold text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+				/>
+			</div>
+		{:else}
+			<div class="flex items-center gap-2">
+				<h3 class="flex-1 truncate font-semibold text-gray-900 dark:text-gray-100">
+					{project.name}
+				</h3>
+				<button
+					onclick={startEditing}
+					class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+					aria-label="Rename project"
+				>
+					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+						/>
+					</svg>
+				</button>
+			</div>
+		{/if}
 		<p class="text-sm text-gray-500 dark:text-gray-400">
 			{generations.length} generation{generations.length !== 1 ? 's' : ''}
 		</p>
