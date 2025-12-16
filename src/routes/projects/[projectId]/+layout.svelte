@@ -23,7 +23,9 @@
 
 	// Derived state
 	let activeProjectId = $derived(data.activeProject.id);
-	let activeProject = $derived(projects.find((p) => p.id === activeProjectId) || data.activeProject);
+	let activeProject = $derived(
+		projects.find((p) => p.id === activeProjectId) || data.activeProject
+	);
 	let generations = $derived(activeProject?.generations || []);
 
 	// Share live activeProject via context so child pages can access it
@@ -32,7 +34,7 @@
 			return activeProject;
 		}
 	});
-	
+
 	// Determine selected generation from URL path
 	// The regex matches both /projects/X/generations/Y and /projects/X/generations/Y/song/Z
 	let selectedGenerationId = $derived.by(() => {
@@ -83,7 +85,7 @@
 
 	function updateLocalGeneration(generationId: number, data: Partial<Generation>) {
 		console.log('SSE update for generation', generationId, data);
-		
+
 		// Check if generation exists in any project
 		const generationExists = projects.some((project) =>
 			project.generations.some((gen) => gen.id === generationId)
@@ -100,9 +102,7 @@
 			console.log('Updated generation in local state');
 
 			// Find the updated generation to notify audio store
-			const updatedGen = projects
-				.flatMap((p) => p.generations)
-				.find((g) => g.id === generationId);
+			const updatedGen = projects.flatMap((p) => p.generations).find((g) => g.id === generationId);
 
 			if (updatedGen) {
 				// Notify audio store if track 1 URLs changed
@@ -190,12 +190,15 @@
 
 <div class="flex h-screen flex-col bg-gray-100 dark:bg-gray-950">
 	<!-- Tabs header -->
-	<div class="flex items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+	<div
+		class="flex items-center border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+	>
 		<div class="flex flex-1 items-center overflow-x-auto" role="tablist">
 			{#each projects as project (project.id)}
 				<a
 					href="/projects/{project.id}"
-					class="group relative flex min-w-0 max-w-[200px] shrink-0 items-center gap-2 border-r border-gray-200 px-4 py-3 text-sm font-medium transition-colors dark:border-gray-700 {project.id === activeProjectId
+					class="group relative flex max-w-[200px] min-w-0 shrink-0 items-center gap-2 border-r border-gray-200 px-4 py-3 text-sm font-medium transition-colors dark:border-gray-700 {project.id ===
+					activeProjectId
 						? 'bg-gray-100 text-indigo-600 dark:bg-gray-800 dark:text-indigo-400'
 						: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'}"
 					role="tab"
@@ -211,22 +214,29 @@
 						/>
 					</svg>
 					<span class="truncate">{project.name}</span>
-					{#if project.generations.some((g) => ['pending', 'processing', 'text_success', 'first_success'].includes(g.status))}
+					{#if project.generations.some( (g) => ['pending', 'processing', 'text_success', 'first_success'].includes(g.status) )}
 						<span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-500"></span>
 					{/if}
 					{#if projects.length > 1}
 						<button
 							onclick={(e) => closeTab(project.id, e)}
 							aria-label="Close tab"
-							class="ml-1 shrink-0 rounded-full p-0.5 text-gray-400 opacity-0 transition-opacity hover:bg-gray-200 hover:text-gray-600 group-hover:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+							class="ml-1 shrink-0 rounded-full p-0.5 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
 						>
 							<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
 							</svg>
 						</button>
 					{/if}
 					{#if project.id === activeProjectId}
-						<div class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"></div>
+						<div
+							class="absolute right-0 bottom-0 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
+						></div>
 					{/if}
 				</a>
 			{/each}
@@ -248,11 +258,7 @@
 	<div class="flex flex-1 overflow-hidden">
 		<!-- Sidebar with generations list -->
 		<div class="w-80 shrink-0">
-			<Sidebar
-				project={activeProject}
-				{generations}
-				{selectedGenerationId}
-			/>
+			<Sidebar project={activeProject} {generations} {selectedGenerationId} />
 		</div>
 
 		<!-- Generation form / details -->

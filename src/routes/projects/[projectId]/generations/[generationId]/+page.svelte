@@ -7,7 +7,9 @@
 	let { data }: { data: PageData } = $props();
 
 	// Get live activeProject from parent layout context (SSE-updated)
-	const activeProjectContext = getContext<{ current: { id: number; generations: Generation[] } }>('activeProject');
+	const activeProjectContext = getContext<{ current: { id: number; generations: Generation[] } }>(
+		'activeProject'
+	);
 
 	// Use live generation from context which receives SSE updates
 	let generation = $derived.by(() => {
@@ -24,4 +26,8 @@
 	});
 </script>
 
-<GenerationView {generation} parentGeneration={data.parentGeneration} parentSong={data.parentSong} />
+<GenerationView
+	{generation}
+	parentGeneration={data.parentGeneration}
+	parentSong={data.parentSong}
+/>

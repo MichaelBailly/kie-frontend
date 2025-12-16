@@ -18,7 +18,7 @@
 <div
 	class="group w-full rounded-lg border p-3 text-left transition-all duration-200 {selected
 		? 'border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-950/30'
-		: 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 dark:hover:bg-gray-750'}"
+		: 'dark:hover:bg-gray-750 border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'}"
 >
 	<div class="flex items-start gap-3">
 		{#if generation.track1_image_url}
@@ -55,7 +55,12 @@
 						title="Extended from another song"
 					>
 						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M13 7l5 5m0 0l-5 5m5-5H6"
+							/>
 						</svg>
 						Extended
 					</span>

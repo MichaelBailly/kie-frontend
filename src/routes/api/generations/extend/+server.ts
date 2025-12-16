@@ -45,14 +45,9 @@ export const POST: RequestHandler = async ({ request }) => {
 	);
 
 	// Start async extend generation process
-	startExtendGeneration(
-		generation.id,
-		title,
-		style,
-		lyrics,
-		extendsAudioId,
-		continueAt
-	).catch(console.error);
+	startExtendGeneration(generation.id, title, style, lyrics, extendsAudioId, continueAt).catch(
+		console.error
+	);
 
 	return json(generation);
 };

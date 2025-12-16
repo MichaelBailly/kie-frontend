@@ -48,6 +48,39 @@ db.exec(`
 	CREATE INDEX IF NOT EXISTS idx_generations_project_id ON generations(project_id);
 	CREATE INDEX IF NOT EXISTS idx_generations_task_id ON generations(task_id);
 	CREATE INDEX IF NOT EXISTS idx_generations_extends ON generations(extends_generation_id);
+
+	CREATE TABLE IF NOT EXISTS stem_separations (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		generation_id INTEGER NOT NULL,
+		audio_id TEXT NOT NULL,
+		task_id TEXT,
+		type TEXT NOT NULL CHECK (type IN ('separate_vocal', 'split_stem')),
+		status TEXT NOT NULL DEFAULT 'pending',
+		error_message TEXT,
+		-- separate_vocal results
+		vocal_url TEXT,
+		instrumental_url TEXT,
+		-- split_stem results
+		backing_vocals_url TEXT,
+		drums_url TEXT,
+		bass_url TEXT,
+		guitar_url TEXT,
+		keyboard_url TEXT,
+		piano_url TEXT,
+		percussion_url TEXT,
+		strings_url TEXT,
+		synth_url TEXT,
+		fx_url TEXT,
+		brass_url TEXT,
+		woodwinds_url TEXT,
+		response_data TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (generation_id) REFERENCES generations(id) ON DELETE CASCADE
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_stem_separations_generation_audio ON stem_separations(generation_id, audio_id);
+	CREATE INDEX IF NOT EXISTS idx_stem_separations_task_id ON stem_separations(task_id);
 `);
 
 export interface Project {
@@ -101,7 +134,9 @@ export function getAllProjects(): Project[] {
 }
 
 export function updateProjectName(id: number, name: string): void {
-	const stmt = db.prepare('UPDATE projects SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+	const stmt = db.prepare(
+		'UPDATE projects SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+	);
 	stmt.run(name, id);
 }
 
@@ -180,29 +215,49 @@ export function getGenerationByTaskId(taskId: string): Generation | undefined {
 }
 
 export function getGenerationsByProject(projectId: number): Generation[] {
-	const stmt = db.prepare('SELECT * FROM generations WHERE project_id = ? ORDER BY created_at DESC');
+	const stmt = db.prepare(
+		'SELECT * FROM generations WHERE project_id = ? ORDER BY created_at DESC'
+	);
 	return stmt.all(projectId) as Generation[];
 }
 
 export function getLatestGenerationByProject(projectId: number): Generation | undefined {
-	const stmt = db.prepare('SELECT * FROM generations WHERE project_id = ? ORDER BY created_at DESC LIMIT 1');
+	const stmt = db.prepare(
+		'SELECT * FROM generations WHERE project_id = ? ORDER BY created_at DESC LIMIT 1'
+	);
 	return stmt.get(projectId) as Generation | undefined;
 }
 
 export function updateGenerationTaskId(id: number, taskId: string): void {
-	const stmt = db.prepare('UPDATE generations SET task_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+	const stmt = db.prepare(
+		'UPDATE generations SET task_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+	);
 	stmt.run(taskId, 'processing', id);
 }
 
 export function updateGenerationStatus(id: number, status: string, errorMessage?: string): void {
-	const stmt = db.prepare('UPDATE generations SET status = ?, error_message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+	const stmt = db.prepare(
+		'UPDATE generations SET status = ?, error_message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+	);
 	stmt.run(status, errorMessage || null, id);
 }
 
 export function updateGenerationTracks(
 	id: number,
-	track1: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number; audioId?: string },
-	track2?: { streamUrl?: string; audioUrl?: string; imageUrl?: string; duration?: number; audioId?: string },
+	track1: {
+		streamUrl?: string;
+		audioUrl?: string;
+		imageUrl?: string;
+		duration?: number;
+		audioId?: string;
+	},
+	track2?: {
+		streamUrl?: string;
+		audioUrl?: string;
+		imageUrl?: string;
+		duration?: number;
+		audioId?: string;
+	},
 	responseData?: string
 ): void {
 	const stmt = db.prepare(`
@@ -240,8 +295,20 @@ export function updateGenerationTracks(
 export function completeGeneration(
 	id: number,
 	status: string,
-	track1: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number; audioId: string },
-	track2: { streamUrl: string; audioUrl: string; imageUrl: string; duration: number; audioId: string },
+	track1: {
+		streamUrl: string;
+		audioUrl: string;
+		imageUrl: string;
+		duration: number;
+		audioId: string;
+	},
+	track2: {
+		streamUrl: string;
+		audioUrl: string;
+		imageUrl: string;
+		duration: number;
+		audioId: string;
+	},
 	responseData: string
 ): void {
 	const stmt = db.prepare(`
@@ -284,8 +351,176 @@ export function deleteGeneration(id: number): void {
 }
 
 export function getPendingGenerations(): Generation[] {
-	const stmt = db.prepare("SELECT * FROM generations WHERE status IN ('pending', 'processing', 'text_success', 'first_success')");
+	const stmt = db.prepare(
+		"SELECT * FROM generations WHERE status IN ('pending', 'processing', 'text_success', 'first_success')"
+	);
 	return stmt.all() as Generation[];
+}
+
+// Stem Separation types and operations
+export type StemSeparationType = 'separate_vocal' | 'split_stem';
+
+export interface StemSeparation {
+	id: number;
+	generation_id: number;
+	audio_id: string;
+	task_id: string | null;
+	type: StemSeparationType;
+	status: string;
+	error_message: string | null;
+	vocal_url: string | null;
+	instrumental_url: string | null;
+	backing_vocals_url: string | null;
+	drums_url: string | null;
+	bass_url: string | null;
+	guitar_url: string | null;
+	keyboard_url: string | null;
+	piano_url: string | null;
+	percussion_url: string | null;
+	strings_url: string | null;
+	synth_url: string | null;
+	fx_url: string | null;
+	brass_url: string | null;
+	woodwinds_url: string | null;
+	response_data: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export function createStemSeparation(
+	generationId: number,
+	audioId: string,
+	type: StemSeparationType
+): StemSeparation {
+	const stmt = db.prepare(`
+		INSERT INTO stem_separations (generation_id, audio_id, type, status)
+		VALUES (?, ?, ?, 'pending')
+		RETURNING *
+	`);
+	return stmt.get(generationId, audioId, type) as StemSeparation;
+}
+
+export function getStemSeparation(id: number): StemSeparation | undefined {
+	const stmt = db.prepare('SELECT * FROM stem_separations WHERE id = ?');
+	return stmt.get(id) as StemSeparation | undefined;
+}
+
+export function getStemSeparationByTaskId(taskId: string): StemSeparation | undefined {
+	const stmt = db.prepare('SELECT * FROM stem_separations WHERE task_id = ?');
+	return stmt.get(taskId) as StemSeparation | undefined;
+}
+
+export function getStemSeparationsForSong(generationId: number, audioId: string): StemSeparation[] {
+	const stmt = db.prepare(`
+		SELECT * FROM stem_separations 
+		WHERE generation_id = ? AND audio_id = ?
+		ORDER BY created_at DESC
+	`);
+	return stmt.all(generationId, audioId) as StemSeparation[];
+}
+
+export function getStemSeparationByType(
+	generationId: number,
+	audioId: string,
+	type: StemSeparationType
+): StemSeparation | undefined {
+	const stmt = db.prepare(`
+		SELECT * FROM stem_separations 
+		WHERE generation_id = ? AND audio_id = ? AND type = ?
+		ORDER BY created_at DESC
+		LIMIT 1
+	`);
+	return stmt.get(generationId, audioId, type) as StemSeparation | undefined;
+}
+
+export function updateStemSeparationTaskId(id: number, taskId: string): void {
+	const stmt = db.prepare(`
+		UPDATE stem_separations 
+		SET task_id = ?, status = 'processing', updated_at = CURRENT_TIMESTAMP 
+		WHERE id = ?
+	`);
+	stmt.run(taskId, id);
+}
+
+export function updateStemSeparationStatus(
+	id: number,
+	status: string,
+	errorMessage?: string
+): void {
+	const stmt = db.prepare(`
+		UPDATE stem_separations 
+		SET status = ?, error_message = ?, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = ?
+	`);
+	stmt.run(status, errorMessage || null, id);
+}
+
+export function completeStemSeparation(
+	id: number,
+	data: {
+		vocalUrl?: string;
+		instrumentalUrl?: string;
+		backingVocalsUrl?: string;
+		drumsUrl?: string;
+		bassUrl?: string;
+		guitarUrl?: string;
+		keyboardUrl?: string;
+		pianoUrl?: string;
+		percussionUrl?: string;
+		stringsUrl?: string;
+		synthUrl?: string;
+		fxUrl?: string;
+		brassUrl?: string;
+		woodwindsUrl?: string;
+	},
+	responseData: string
+): void {
+	const stmt = db.prepare(`
+		UPDATE stem_separations SET
+			status = 'success',
+			vocal_url = ?,
+			instrumental_url = ?,
+			backing_vocals_url = ?,
+			drums_url = ?,
+			bass_url = ?,
+			guitar_url = ?,
+			keyboard_url = ?,
+			piano_url = ?,
+			percussion_url = ?,
+			strings_url = ?,
+			synth_url = ?,
+			fx_url = ?,
+			brass_url = ?,
+			woodwinds_url = ?,
+			response_data = ?,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`);
+	stmt.run(
+		data.vocalUrl || null,
+		data.instrumentalUrl || null,
+		data.backingVocalsUrl || null,
+		data.drumsUrl || null,
+		data.bassUrl || null,
+		data.guitarUrl || null,
+		data.keyboardUrl || null,
+		data.pianoUrl || null,
+		data.percussionUrl || null,
+		data.stringsUrl || null,
+		data.synthUrl || null,
+		data.fxUrl || null,
+		data.brassUrl || null,
+		data.woodwindsUrl || null,
+		responseData,
+		id
+	);
+}
+
+export function getPendingStemSeparations(): StemSeparation[] {
+	const stmt = db.prepare(
+		"SELECT * FROM stem_separations WHERE status IN ('pending', 'processing')"
+	);
+	return stmt.all() as StemSeparation[];
 }
 
 export default db;

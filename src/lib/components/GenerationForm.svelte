@@ -38,7 +38,10 @@
 		<!-- Generation form -->
 		<form onsubmit={handleSubmit} class="space-y-5">
 			<div>
-				<label for="title" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+				<label
+					for="title"
+					class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
 					Title
 				</label>
 				<input
@@ -53,7 +56,10 @@
 			</div>
 
 			<div>
-				<label for="style" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+				<label
+					for="style"
+					class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
 					Style Prompt
 				</label>
 				<textarea
@@ -68,7 +74,10 @@
 			</div>
 
 			<div>
-				<label for="lyrics" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+				<label
+					for="lyrics"
+					class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
 					Lyrics
 				</label>
 				<textarea
@@ -96,7 +105,13 @@ The catchy part..."
 				>
 					{#if isSubmitting}
 						<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
 							></circle>
 							<path
 								class="opacity-75"

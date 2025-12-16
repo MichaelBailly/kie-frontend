@@ -1,6 +1,10 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { getExtendedGenerations, getGeneration as getGenerationById } from '$lib/db.server';
+import {
+	getExtendedGenerations,
+	getGeneration as getGenerationById,
+	getStemSeparationsForSong
+} from '$lib/db.server';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { activeProject } = await parent();
@@ -51,6 +55,9 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 	// Get extended generations for this song (songs that extend from this one)
 	const extendedGenerations = getExtendedGenerations(generationId, songId);
 
+	// Get stem separations for this song
+	const stemSeparations = getStemSeparationsForSong(generationId, songId);
+
 	// Get parent generation if this is an extended song
 	let parentGeneration = null;
 	let parentSong = null;
@@ -77,6 +84,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		song: songData,
 		activeProject,
 		extendedGenerations,
+		stemSeparations,
 		parentGeneration,
 		parentSong,
 		continueAt: generation.continue_at

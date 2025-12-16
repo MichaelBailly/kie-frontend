@@ -34,10 +34,46 @@ export interface Generation {
 	updated_at: string;
 }
 
+export type StemSeparationType = 'separate_vocal' | 'split_stem';
+
+export interface StemSeparation {
+	id: number;
+	generation_id: number;
+	audio_id: string;
+	task_id: string | null;
+	type: StemSeparationType;
+	status: string;
+	error_message: string | null;
+	vocal_url: string | null;
+	instrumental_url: string | null;
+	backing_vocals_url: string | null;
+	drums_url: string | null;
+	bass_url: string | null;
+	guitar_url: string | null;
+	keyboard_url: string | null;
+	piano_url: string | null;
+	percussion_url: string | null;
+	strings_url: string | null;
+	synth_url: string | null;
+	fx_url: string | null;
+	brass_url: string | null;
+	woodwinds_url: string | null;
+	response_data: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface SSEMessage {
-	type: 'generation_update' | 'generation_complete' | 'generation_error';
+	type:
+		| 'generation_update'
+		| 'generation_complete'
+		| 'generation_error'
+		| 'stem_separation_update'
+		| 'stem_separation_complete'
+		| 'stem_separation_error';
 	generationId: number;
-	data: Partial<Generation>;
+	data: Partial<Generation> | Partial<StemSeparation>;
+	stemSeparationId?: number;
 }
 
 export type GenerationStatus =

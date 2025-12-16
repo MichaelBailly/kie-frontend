@@ -91,7 +91,10 @@
 			.domain([0, waveformData.length - 1])
 			.range([0, containerWidth]);
 
-		const yScale = d3.scaleLinear().domain([0, 1]).range([innerHeight / 2, 0]);
+		const yScale = d3
+			.scaleLinear()
+			.domain([0, 1])
+			.range([innerHeight / 2, 0]);
 
 		// Calculate progress
 		const progress = duration > 0 ? currentTime / duration : 0;
@@ -107,15 +110,9 @@
 			.attr('x1', 0)
 			.attr('x2', containerWidth);
 
-		gradient
-			.append('stop')
-			.attr('offset', progress)
-			.attr('stop-color', color);
+		gradient.append('stop').attr('offset', progress).attr('stop-color', color);
 
-		gradient
-			.append('stop')
-			.attr('offset', progress)
-			.attr('stop-color', backgroundColor);
+		gradient.append('stop').attr('offset', progress).attr('stop-color', backgroundColor);
 
 		// Create area generators for upper and lower half
 		const upperArea = d3
@@ -212,7 +209,8 @@
 	<div class="flex items-center justify-center" style="height: {height}px;">
 		<div class="flex items-center gap-2">
 			<svg class="h-5 w-5 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
-				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+				></circle>
 				<path
 					class="opacity-75"
 					fill="currentColor"

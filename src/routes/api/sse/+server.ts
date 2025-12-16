@@ -10,7 +10,9 @@ export const GET: RequestHandler = async () => {
 
 			// Send initial connection message
 			const encoder = new TextEncoder();
-			controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`));
+			controller.enqueue(
+				encoder.encode(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`)
+			);
 		},
 		cancel() {
 			removeClient(clientId);

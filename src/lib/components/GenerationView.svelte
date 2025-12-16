@@ -3,7 +3,11 @@
 	import { getStatusLabel, isGenerating } from '$lib/types';
 	import AudioPlayer from './AudioPlayer.svelte';
 
-	let { generation, parentGeneration = null, parentSong = null }: { generation: Generation; parentGeneration?: any; parentSong?: any } = $props();
+	let {
+		generation,
+		parentGeneration = null,
+		parentSong = null
+	}: { generation: Generation; parentGeneration?: any; parentSong?: any } = $props();
 </script>
 
 <div class="flex h-full flex-col">
@@ -18,7 +22,12 @@
 				class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-purple-100 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-800/40"
 			>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 7l5 5m0 0l-5 5m5-5H6"
+					/>
 				</svg>
 				Extends from: {parentSong.title}
 			</a>
@@ -45,7 +54,11 @@
 				class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
 			>
 				<div class="flex items-center gap-2">
-					<svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+					<svg
+						class="h-5 w-5 text-green-600 dark:text-green-400"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
 						<path
 							fill-rule="evenodd"
 							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -60,7 +73,11 @@
 				class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
 			>
 				<div class="flex items-center gap-2">
-					<svg class="h-5 w-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+					<svg
+						class="h-5 w-5 text-red-600 dark:text-red-400"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
 						<path
 							fill-rule="evenodd"
 							d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -164,9 +181,7 @@
 		<!-- Song details (read-only) -->
 		<div class="space-y-5">
 			<div>
-				<h4 class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-					Title
-				</h4>
+				<h4 class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Title</h4>
 				<div
 					class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
 				>
@@ -186,11 +201,9 @@
 			</div>
 
 			<div>
-				<h4 class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-					Lyrics
-				</h4>
+				<h4 class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Lyrics</h4>
 				<div
-					class="w-full whitespace-pre-wrap rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 font-mono text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+					class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 font-mono text-sm whitespace-pre-wrap text-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
 				>
 					{generation.lyrics}
 				</div>

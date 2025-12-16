@@ -50,7 +50,7 @@
 		title = latestGeneration?.title || '';
 		style = latestGeneration?.style || '';
 		lyrics = latestGeneration?.lyrics || '';
-		
+
 		isInitializing = false;
 	});
 
@@ -84,9 +84,4 @@
 	}
 </script>
 
-<GenerationForm
-	bind:title
-	bind:style
-	bind:lyrics
-	onNewGeneration={handleNewGeneration}
-/>
+<GenerationForm bind:title bind:style bind:lyrics onNewGeneration={handleNewGeneration} />

@@ -86,22 +86,37 @@
 </script>
 
 <div class="space-y-6">
-	<div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/30">
+	<div
+		class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/30"
+	>
 		<h3 class="mb-2 flex items-center gap-2 font-semibold text-indigo-900 dark:text-indigo-100">
 			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 5l7 7-7 7M5 5l7 7-7 7"
+				/>
 			</svg>
 			Extend This Song
 		</h3>
 		<p class="text-sm text-indigo-700 dark:text-indigo-300">
-			Create a continuation of this song starting from a specific point. The AI will generate new music that seamlessly continues from where you choose.
+			Create a continuation of this song starting from a specific point. The AI will generate new
+			music that seamlessly continues from where you choose.
 		</p>
 	</div>
 
 	<!-- Continue At Selection with Waveform -->
-	<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-		<label for="continue-at-slider" class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-			Continue From: <span class="font-bold text-indigo-600 dark:text-indigo-400">{formatTime(continueAt)}</span>
+	<div
+		class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+	>
+		<label
+			for="continue-at-slider"
+			class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
+		>
+			Continue From: <span class="font-bold text-indigo-600 dark:text-indigo-400"
+				>{formatTime(continueAt)}</span
+			>
 		</label>
 
 		<!-- Waveform with marker -->
@@ -121,7 +136,9 @@
 					class="pointer-events-none absolute top-0 h-full w-0.5 bg-red-500"
 					style="left: {(continueAt / duration) * 100}%"
 				>
-					<div class="absolute -top-1 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white">
+					<div
+						class="absolute -top-1 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white"
+					>
 						{formatTime(continueAt)}
 					</div>
 				</div>
@@ -171,7 +188,10 @@
 	<!-- Form fields -->
 	<form onsubmit={handleSubmit} class="space-y-5">
 		<div>
-			<label for="extend-title" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label
+				for="extend-title"
+				class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+			>
 				Title
 			</label>
 			<input
@@ -186,7 +206,10 @@
 		</div>
 
 		<div>
-			<label for="extend-style" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label
+				for="extend-style"
+				class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+			>
 				Style Prompt
 			</label>
 			<textarea
@@ -201,7 +224,10 @@
 		</div>
 
 		<div>
-			<label for="extend-lyrics" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label
+				for="extend-lyrics"
+				class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+			>
 				Lyrics (how the song should continue)
 			</label>
 			<textarea
@@ -226,12 +252,18 @@
 			</button>
 			<button
 				type="submit"
-				disabled={isSubmitting || !title.trim() || !style.trim() || !lyrics.trim() || continueAt <= 0 || continueAt >= duration}
+				disabled={isSubmitting ||
+					!title.trim() ||
+					!style.trim() ||
+					!lyrics.trim() ||
+					continueAt <= 0 ||
+					continueAt >= duration}
 				class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
 			>
 				{#if isSubmitting}
 					<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+						></circle>
 						<path
 							class="opacity-75"
 							fill="currentColor"
@@ -241,7 +273,12 @@
 					Extending...
 				{:else}
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 5l7 7-7 7M5 5l7 7-7 7"
+						/>
 					</svg>
 					Extend Song
 				{/if}

@@ -137,3 +137,104 @@ export function isCompleteStatus(status: string): boolean {
 export function isInProgressStatus(status: string): boolean {
 	return ['PENDING', 'TEXT_SUCCESS', 'FIRST_SUCCESS'].includes(status);
 }
+
+// Stem Separation API
+
+export type StemSeparationType = 'separate_vocal' | 'split_stem';
+
+export interface StemSeparationRequest {
+	taskId: string;
+	audioId: string;
+	type: StemSeparationType;
+	callBackUrl: string;
+}
+
+export interface StemSeparationResponse {
+	code: number;
+	msg: string;
+	data: {
+		taskId: string;
+	};
+}
+
+export interface StemSeparationDetailsResponse {
+	code: number;
+	msg: string;
+	data: {
+		taskId: string;
+		musicId: string;
+		callbackUrl: string;
+		audioId: string;
+		completeTime: number | null;
+		response: {
+			originUrl: string | null;
+			instrumentalUrl: string | null;
+			vocalUrl: string | null;
+			backingVocalsUrl: string | null;
+			drumsUrl: string | null;
+			bassUrl: string | null;
+			guitarUrl: string | null;
+			pianoUrl: string | null;
+			keyboardUrl: string | null;
+			percussionUrl: string | null;
+			stringsUrl: string | null;
+			synthUrl: string | null;
+			fxUrl: string | null;
+			brassUrl: string | null;
+			woodwindsUrl: string | null;
+		} | null;
+		successFlag:
+			| 'PENDING'
+			| 'SUCCESS'
+			| 'CREATE_TASK_FAILED'
+			| 'GENERATE_AUDIO_FAILED'
+			| 'CALLBACK_EXCEPTION';
+		createTime: number;
+		errorCode: number | null;
+		errorMessage: string | null;
+	};
+}
+
+export async function separateVocals(
+	request: StemSeparationRequest
+): Promise<StemSeparationResponse> {
+	const response = await fetch(`${KIE_API_BASE}/vocal-removal/generate`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${KIE_API_KEY}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(request)
+	});
+
+	if (!response.ok) {
+		throw new Error(`KIE API error: ${response.status} ${response.statusText}`);
+	}
+
+	return response.json();
+}
+
+export async function getStemSeparationDetails(
+	taskId: string
+): Promise<StemSeparationDetailsResponse> {
+	const response = await fetch(`${KIE_API_BASE}/vocal-removal/record-info?taskId=${taskId}`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${KIE_API_KEY}`
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error(`KIE API error: ${response.status} ${response.statusText}`);
+	}
+
+	return response.json();
+}
+
+export function isStemSeparationErrorStatus(status: string): boolean {
+	return ['CREATE_TASK_FAILED', 'GENERATE_AUDIO_FAILED', 'CALLBACK_EXCEPTION'].includes(status);
+}
+
+export function isStemSeparationCompleteStatus(status: string): boolean {
+	return status === 'SUCCESS';
+}

@@ -4,7 +4,7 @@ import { getGeneration as getGenerationById } from '$lib/db.server';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { activeProject } = await parent();
-	
+
 	const generationId = parseInt(params.generationId);
 	const generation = activeProject.generations.find((g) => g.id === generationId);
 

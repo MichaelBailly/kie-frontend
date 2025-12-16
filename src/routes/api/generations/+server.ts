@@ -47,7 +47,10 @@ async function startGeneration(generationId: number, title: string, style: strin
 
 		if (response.code !== 200) {
 			updateGenerationStatus(generationId, 'error', response.msg);
-			notifyClients(generationId, 'generation_error', { status: 'error', error_message: response.msg });
+			notifyClients(generationId, 'generation_error', {
+				status: 'error',
+				error_message: response.msg
+			});
 			return;
 		}
 
@@ -60,6 +63,9 @@ async function startGeneration(generationId: number, title: string, style: strin
 	} catch (err) {
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 		updateGenerationStatus(generationId, 'error', errorMessage);
-		notifyClients(generationId, 'generation_error', { status: 'error', error_message: errorMessage });
+		notifyClients(generationId, 'generation_error', {
+			status: 'error',
+			error_message: errorMessage
+		});
 	}
 }
