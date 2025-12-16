@@ -5,7 +5,7 @@
 	import { onMount, onDestroy, setContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { audioStore } from '$lib/stores/audio.svelte';
 
 	let { data, children }: { data: LayoutData; children: any } = $props();
@@ -34,8 +34,9 @@
 	});
 	
 	// Determine selected generation from URL path
+	// The regex matches both /projects/X/generations/Y and /projects/X/generations/Y/song/Z
 	let selectedGenerationId = $derived.by(() => {
-		const match = $page.url.pathname.match(/\/projects\/\d+\/generations\/(\d+)/);
+		const match = page.url.pathname.match(/\/projects\/\d+\/generations\/(\d+)/);
 		return match ? parseInt(match[1]) : null;
 	});
 

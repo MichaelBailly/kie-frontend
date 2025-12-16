@@ -18,7 +18,7 @@
 <div
 	class="group w-full rounded-lg border p-3 text-left transition-all duration-200 {selected
 		? 'border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-950/30'
-		: 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 dark:hover:bg-gray-750'}"
+		: 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 dark:hover:bg-gray-750'}"
 >
 	<div class="flex items-start gap-3">
 		{#if generation.track1_image_url}
