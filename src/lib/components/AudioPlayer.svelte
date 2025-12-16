@@ -96,7 +96,7 @@
 			<!-- Play/Pause button -->
 			<button
 				onclick={handlePlayPause}
-				class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700"
+				class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700"
 			>
 				{#if isPlaying}
 					<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					onclick={toggleMute}
-					class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+					class="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 				>
 					{#if isMuted || volume === 0}
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

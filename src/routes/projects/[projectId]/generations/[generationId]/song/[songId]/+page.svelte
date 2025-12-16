@@ -361,7 +361,7 @@
 				<div class="flex items-center justify-center gap-6">
 					<button
 						onclick={handlePlayPause}
-						class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700"
+						class="flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700"
 					>
 						{#if !isPlaying}
 							<svg class="h-8 w-8 pl-1" fill="currentColor" viewBox="0 0 24 24">
@@ -412,7 +412,7 @@
 					<!-- Extend Song Button -->
 					<button
 						onclick={() => (showExtendForm = !showExtendForm)}
-						class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600 transition-colors hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900"
+						class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-purple-100 text-purple-600 transition-colors hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900"
 						title="Extend song"
 					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,7 +430,7 @@
 						<button
 							onclick={() => (showStemOptions = !showStemOptions)}
 							disabled={separatingType !== null}
-							class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 transition-colors hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cyan-900/50 dark:text-cyan-400 dark:hover:bg-cyan-900"
+							class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-cyan-100 text-cyan-600 transition-colors hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cyan-900/50 dark:text-cyan-400 dark:hover:bg-cyan-900"
 							title="Stem Separation"
 						>
 							{#if separatingType !== null || pendingVocalSeparation || pendingStemSeparation}
@@ -473,7 +473,7 @@
 									<button
 										onclick={() => requestStemSeparation('separate_vocal')}
 										disabled={!!vocalSeparation || !!pendingVocalSeparation}
-										class="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+										class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
 									>
 										<span class="text-xl">🎤</span>
 										<div>
@@ -494,7 +494,7 @@
 									<button
 										onclick={() => requestStemSeparation('split_stem')}
 										disabled={!!stemSeparation || !!pendingStemSeparation}
-										class="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+										class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
 									>
 										<span class="text-xl">🎛️</span>
 										<div>
@@ -699,7 +699,7 @@
 		>
 			<button
 				onclick={() => (styleExpanded = !styleExpanded)}
-				class="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+				class="flex w-full cursor-pointer items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
 			>
 				<div class="flex items-center gap-3">
 					<svg
@@ -737,7 +737,7 @@
 						<div class="mb-3 flex justify-end">
 							<button
 								onclick={() => copyToClipboard(generation.style, 'style')}
-								class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
+								class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
 							>
 								{#if styleCopied}
 									<svg
@@ -780,7 +780,7 @@
 			>
 				<button
 					onclick={() => (lyricsExpanded = !lyricsExpanded)}
-					class="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+					class="flex w-full cursor-pointer items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
 				>
 					<div class="flex items-center gap-3">
 						<svg
@@ -818,7 +818,7 @@
 							<div class="mb-3 flex justify-end">
 								<button
 									onclick={() => copyToClipboard(generation.lyrics || '', 'lyrics')}
-									class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
+									class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
 								>
 									{#if lyricsCopied}
 										<svg

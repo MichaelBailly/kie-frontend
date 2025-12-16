@@ -117,7 +117,7 @@
 	<div class="flex items-center gap-2">
 		<button
 			onclick={playAll}
-			class="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
 		>
 			<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
 				<path d="M8 5v14l11-7z" />
@@ -126,7 +126,7 @@
 		</button>
 		<button
 			onclick={stopAll}
-			class="flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
 		>
 			<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
 				<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
@@ -135,7 +135,7 @@
 		</button>
 		<button
 			onclick={copyDownloadCommand}
-			class="ml-auto flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+			class="ml-auto flex cursor-pointer items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
 			title="Copy curl command to download all stems"
 		>
 			{#if downloadCommandCopied}
@@ -179,7 +179,7 @@
 			>
 				<button
 					onclick={() => toggleStem(stem.name, stem.url!)}
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors {playingStems[
+					class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors {playingStems[
 						stem.name
 					]
 						? 'bg-indigo-600 text-white'
