@@ -3,7 +3,7 @@
 	import { getStatusLabel, isGenerating } from '$lib/types';
 	import AudioPlayer from './AudioPlayer.svelte';
 
-	let { generation }: { generation: Generation } = $props();
+	let { generation, parentGeneration = null, parentSong = null }: { generation: Generation; parentGeneration?: any; parentSong?: any } = $props();
 </script>
 
 <div class="flex h-full flex-col">
@@ -12,6 +12,17 @@
 		<h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
 			{generation.title}
 		</h2>
+		{#if parentGeneration && parentSong}
+			<a
+				href="/projects/{generation.project_id}/generations/{parentGeneration.id}/song/{parentSong.id}"
+				class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-purple-100 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-800/40"
+			>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+				</svg>
+				Extends from: {parentSong.title}
+			</a>
+		{/if}
 		{#if isGenerating(generation.status)}
 			<div class="mt-2 flex items-center gap-2">
 				<div class="h-2 w-2 animate-pulse rounded-full bg-amber-500"></div>

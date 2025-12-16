@@ -118,8 +118,8 @@ export function createGeneration(
 	lyrics: string
 ): Generation {
 	const stmt = db.prepare(`
-		INSERT INTO generations (project_id, title, style, lyrics, status)
-		VALUES (?, ?, ?, ?, 'pending')
+		INSERT INTO generations (project_id, title, style, lyrics, status, extends_generation_id, extends_audio_id, continue_at)
+		VALUES (?, ?, ?, ?, 'pending', NULL, NULL, NULL)
 		RETURNING *
 	`);
 	const generation = stmt.get(projectId, title, style, lyrics) as Generation;

@@ -48,7 +48,18 @@
 			<p class="truncate text-sm text-gray-500 dark:text-gray-400">
 				{generation.style}
 			</p>
-			<div class="mt-1 flex items-center gap-2">
+			<div class="mt-1 flex flex-wrap items-center gap-2">
+				{#if generation.extends_generation_id && typeof generation.extends_generation_id === 'number'}
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+						title="Extended from another song"
+					>
+						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+						</svg>
+						Extended
+					</span>
+				{/if}
 				{#if isGenerating(generation.status)}
 					<span
 						class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"

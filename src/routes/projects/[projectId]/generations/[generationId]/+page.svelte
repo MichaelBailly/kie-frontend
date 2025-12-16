@@ -24,4 +24,4 @@
 	});
 </script>
 
-<GenerationView {generation} />
+<GenerationView {generation} parentGeneration={data.parentGeneration} parentSong={data.parentSong} />
