@@ -41,23 +41,32 @@
 				const message = JSON.parse(event.data);
 				if (message.audioId === data.song.id && message.generationId === data.generation.id) {
 					if (message.type === 'stem_separation_update') {
-						// Update in-progress separation via update map
-						stemSeparationUpdates[message.stemSeparationId] = {
-							...stemSeparationUpdates[message.stemSeparationId],
-							...message.data
+						// Update in-progress separation via update map - create new object to trigger reactivity
+						stemSeparationUpdates = {
+							...stemSeparationUpdates,
+							[message.stemSeparationId]: {
+								...stemSeparationUpdates[message.stemSeparationId],
+								...message.data
+							}
 						};
 					} else if (message.type === 'stem_separation_complete') {
-						// Update completed separation
-						stemSeparationUpdates[message.stemSeparationId] = {
-							...stemSeparationUpdates[message.stemSeparationId],
-							...message.data
+						// Update completed separation - create new object to trigger reactivity
+						stemSeparationUpdates = {
+							...stemSeparationUpdates,
+							[message.stemSeparationId]: {
+								...stemSeparationUpdates[message.stemSeparationId],
+								...message.data
+							}
 						};
 						separatingType = null;
 					} else if (message.type === 'stem_separation_error') {
-						// Update error status
-						stemSeparationUpdates[message.stemSeparationId] = {
-							...stemSeparationUpdates[message.stemSeparationId],
-							...message.data
+						// Update error status - create new object to trigger reactivity
+						stemSeparationUpdates = {
+							...stemSeparationUpdates,
+							[message.stemSeparationId]: {
+								...stemSeparationUpdates[message.stemSeparationId],
+								...message.data
+							}
 						};
 						separatingType = null;
 					}
