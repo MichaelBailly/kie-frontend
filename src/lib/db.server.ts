@@ -357,6 +357,62 @@ export function getPendingGenerations(): Generation[] {
 	return stmt.all() as Generation[];
 }
 
+export function createImportedGeneration(
+	projectId: number,
+	taskId: string,
+	title: string,
+	style: string,
+	lyrics: string,
+	track1: {
+		streamUrl: string;
+		audioUrl: string;
+		imageUrl: string;
+		duration: number;
+		audioId: string;
+	},
+	track2: {
+		streamUrl: string;
+		audioUrl: string;
+		imageUrl: string;
+		duration: number;
+		audioId: string;
+	},
+	responseData: string
+): Generation {
+	const stmt = db.prepare(`
+		INSERT INTO generations (
+			project_id, task_id, title, style, lyrics, status,
+			track1_stream_url, track1_audio_url, track1_image_url, track1_duration, track1_audio_id,
+			track2_stream_url, track2_audio_url, track2_image_url, track2_duration, track2_audio_id,
+			response_data
+		) VALUES (?, ?, ?, ?, ?, 'success', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		RETURNING *
+	`);
+	const generation = stmt.get(
+		projectId,
+		taskId,
+		title,
+		style,
+		lyrics,
+		track1.streamUrl,
+		track1.audioUrl,
+		track1.imageUrl,
+		track1.duration,
+		track1.audioId,
+		track2.streamUrl,
+		track2.audioUrl,
+		track2.imageUrl,
+		track2.duration,
+		track2.audioId,
+		responseData
+	) as Generation;
+
+	// Update project's updated_at
+	db.prepare('UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(projectId);
+
+	return generation;
+}
+
 // Stem Separation types and operations
 export type StemSeparationType = 'separate_vocal' | 'split_stem';
 

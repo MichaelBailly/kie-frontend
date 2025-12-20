@@ -12,7 +12,8 @@ Create beautiful, AI-generated music with an intuitive project-based interface. 
 - ⚡ **Real-Time Updates** - Server-Sent Events (SSE) for live generation status
 - 🎵 **Dual Track Generation** - Each generation produces two unique variants
 - 🎚️ **Stem Separation** - Vocal removal / stem splitting with live status updates
-- 🔄 **Smart Polling** - Automatic status updates with the KIE AI API
+- � **Import Existing Songs** - Import previously generated songs by Task ID
+- �🔄 **Smart Polling** - Automatic status updates with the KIE AI API
 - 💾 **Local SQLite Storage** - Fast, reliable data persistence with WAL mode
 - 🎯 **Form Pre-filling** - Quickly iterate on previous generations
 - 🎭 **Modern UI** - Built with Svelte 5 and Tailwind CSS v4
@@ -112,6 +113,7 @@ kie-frontend/
 │   │   │   └── [projectId]/  # Project detail pages
 │   │   └── api/
 │   │       ├── generations/     # Generation endpoints (+ extend)
+│   │       ├── import/          # Import existing songs endpoint
 │   │       ├── projects/        # Project CRUD endpoints
 │   │       ├── stem-separation/ # Stem separation endpoint
 │   │       └── sse/             # SSE endpoint
@@ -173,11 +175,11 @@ The app uses Server-Sent Events for live updates:
 // Client-side SSE subscription (automatic in layouts)
 const eventSource = new EventSource('/api/sse');
 eventSource.onmessage = (event) => {
-   // The server sends default "message" events containing JSON with a `type` field
-   const message = JSON.parse(event.data);
-   if (message.type === 'generation_update' || message.type === 'generation_complete') {
-      console.log('Generation update:', message.generationId, message.data);
-   }
+	// The server sends default "message" events containing JSON with a `type` field
+	const message = JSON.parse(event.data);
+	if (message.type === 'generation_update' || message.type === 'generation_complete') {
+		console.log('Generation update:', message.generationId, message.data);
+	}
 };
 ```
 

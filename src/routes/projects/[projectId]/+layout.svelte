@@ -2,6 +2,7 @@
 	import type { LayoutData } from './$types';
 	import type { Project, Generation, SSEMessage, StemSeparation } from '$lib/types';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import ImportSongModal from '$lib/components/ImportSongModal.svelte';
 	import { onMount, onDestroy, setContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -13,6 +14,7 @@
 	// State
 	let projects = $state<(Project & { generations: Generation[] })[]>([]);
 	let eventSource: EventSource | null = null;
+	let showImportModal = $state(false);
 
 	// Initialize projects from data
 	$effect(() => {
@@ -87,7 +89,10 @@
 					message.type === 'stem_separation_error'
 				) {
 					if ('stemSeparationId' in message && message.stemSeparationId) {
-						stemSeparationUpdates.set(message.stemSeparationId, message.data as Partial<StemSeparation>);
+						stemSeparationUpdates.set(
+							message.stemSeparationId,
+							message.data as Partial<StemSeparation>
+						);
 						stemSeparationUpdates = new Map(stemSeparationUpdates);
 					}
 					return;
@@ -268,6 +273,23 @@
 			{/each}
 		</div>
 
+		<!-- Import button -->
+		<button
+			onclick={() => (showImportModal = true)}
+			class="flex h-full shrink-0 items-center gap-1.5 border-l border-gray-200 px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+			title="Import an existing song by Task ID"
+		>
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+				/>
+			</svg>
+			<span class="hidden sm:inline">Import</span>
+		</button>
+
 		<!-- New tab button -->
 		<button
 			onclick={createNewProject}
@@ -293,3 +315,6 @@
 		</div>
 	</div>
 </div>
+
+<!-- Import Song Modal -->
+<ImportSongModal bind:isOpen={showImportModal} onClose={() => (showImportModal = false)} />

@@ -9,6 +9,7 @@
 
 - **Create generation**: [src/routes/api/generations/+server.ts](src/routes/api/generations/+server.ts) creates DB row → calls KIE API ([src/lib/kie-api.server.ts](src/lib/kie-api.server.ts)) → stores `task_id` → starts polling ([src/lib/polling.server.ts](src/lib/polling.server.ts)).
 - **Extend song**: [src/routes/api/generations/extend/+server.ts](src/routes/api/generations/extend/+server.ts) creates a generation with `extends_*` fields and polls the same way.
+- **Import song**: [src/routes/api/import/+server.ts](src/routes/api/import/+server.ts) fetches completed generation data from KIE API by `task_id` → creates a new project → stores generation with full track data (no polling needed, already complete).
 - **Stem separation**: [src/routes/api/stem-separation/+server.ts](src/routes/api/stem-separation/+server.ts) creates a `stem_separations` row → calls KIE vocal-removal API → polls via [src/lib/polling.server.ts](src/lib/polling.server.ts).
 - Polling cadence is 5s × 120 (≈10 min). KIE statuses map to app statuses: `PENDING/TEXT_SUCCESS/FIRST_SUCCESS` → `processing/text_success/first_success`, `SUCCESS` → `success`, error statuses → `error`.
 
