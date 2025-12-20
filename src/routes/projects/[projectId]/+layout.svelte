@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
-	import type { Project, Generation, SSEMessage } from '$lib/types';
+	import type { Project, Generation, SSEMessage, StemSeparation } from '$lib/types';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { onMount, onDestroy, setContext } from 'svelte';
 	import { browser } from '$app/environment';
@@ -28,10 +28,23 @@
 	);
 	let generations = $derived(activeProject?.generations || []);
 
-	// Share live activeProject via context so child pages can access it
+	// State for stem separation updates
+	let stemSeparationUpdates = $state<Map<number, Partial<StemSeparation>>>(new Map());
+
+	// Share live activeProject and stem separation updates via context
 	setContext('activeProject', {
 		get current() {
 			return activeProject;
+		}
+	});
+
+	setContext('stemSeparations', {
+		get updates() {
+			return stemSeparationUpdates;
+		},
+		set: (id: number, data: Partial<StemSeparation>) => {
+			stemSeparationUpdates.set(id, data);
+			stemSeparationUpdates = new Map(stemSeparationUpdates);
 		}
 	});
 
@@ -64,6 +77,19 @@
 
 				if (message.type === 'connected') {
 					console.log('SSE connected');
+					return;
+				}
+
+				// Handle stem separation updates
+				if (
+					message.type === 'stem_separation_update' ||
+					message.type === 'stem_separation_complete' ||
+					message.type === 'stem_separation_error'
+				) {
+					if ('stemSeparationId' in message && message.stemSeparationId) {
+						stemSeparationUpdates.set(message.stemSeparationId, message.data as Partial<StemSeparation>);
+						stemSeparationUpdates = new Map(stemSeparationUpdates);
+					}
 					return;
 				}
 

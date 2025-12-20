@@ -14,8 +14,10 @@
 
 ## Real-time updates (SSE)
 
-- Server broadcasts updates from polling using [src/lib/sse.server.ts](src/lib/sse.server.ts) (`notifyClients`, `notifyStemSeparationClients`) and the SSE endpoint [src/routes/api/sse/+server.ts](src/routes/api/sse/+server.ts).
-- Client subscribes with `new EventSource('/api/sse')` and merges updates into local state in [src/routes/projects/[projectId]/+layout.svelte](src/routes/projects/[projectId]/+layout.svelte) (also used in [src/routes/projects/[projectId]/generations/[generationId]/song/[songId]/+page.svelte](src/routes/projects/[projectId]/generations/[generationId]/song/[songId]/+page.svelte)).
+- **Single SSE connection**: Client creates one `EventSource('/api/sse')` connection in [src/routes/projects/[projectId]/+layout.svelte](src/routes/projects/[projectId]/+layout.svelte) for all real-time updates.
+- Server broadcasts generation updates and stem separation updates from polling using [src/lib/sse.server.ts](src/lib/sse.server.ts) (`notifyClients`, `notifyStemSeparationClients`) via [src/routes/api/sse/+server.ts](src/routes/api/sse/+server.ts).
+- Layout handles both generation updates (merged into `projects` state) and stem separation updates (stored in `stemSeparationUpdates` Map).
+- Child pages access live data via Svelte context: `activeProject` for generation updates, `stemSeparations` for stem separation updates.
 - Audio playback uses a Svelte 5 store; streaming → final URL swap is handled by [src/lib/stores/audio.svelte.ts](src/lib/stores/audio.svelte.ts).
 
 ## Server-only conventions

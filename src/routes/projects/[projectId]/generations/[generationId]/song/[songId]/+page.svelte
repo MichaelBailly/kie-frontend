@@ -3,25 +3,29 @@
 	import Waveform from '$lib/components/Waveform.svelte';
 	import ExtendSongForm from '$lib/components/ExtendSongForm.svelte';
 	import StemPlayer from '$lib/components/StemPlayer.svelte';
-	import { getContext, onMount, onDestroy } from 'svelte';
+	import { getContext } from 'svelte';
 	import type { Generation, StemSeparation, StemSeparationType } from '$lib/types';
 	import { audioStore, type AudioTrack } from '$lib/stores/audio.svelte';
 	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
 
-	// Stem separation state - initialize with data from server
-	// We need to track updates from SSE separately
-	let stemSeparationUpdates = $state<Record<number, Partial<StemSeparation>>>({});
+	// Stem separation state
 	let newStemSeparations = $state<StemSeparation[]>([]);
 	let separatingType = $state<StemSeparationType | null>(null);
 	let showStemOptions = $state(false);
 
+	// Get stem separation updates from parent layout context (SSE-updated)
+	const stemSeparationsContext = getContext<{
+		updates: Map<number, Partial<StemSeparation>>;
+		set: (id: number, data: Partial<StemSeparation>) => void;
+	}>('stemSeparations');
+
 	// Merge server data with updates from SSE
 	let stemSeparations = $derived.by(() => {
-		// Start with server-loaded data, apply updates
+		// Start with server-loaded data, apply updates from SSE
 		const serverData = (data.stemSeparations || []).map((sep) => {
-			const updates = stemSeparationUpdates[sep.id];
+			const updates = stemSeparationsContext?.updates.get(sep.id);
 			return updates ? { ...sep, ...updates } : sep;
 		});
 		// Add any new separations created during this session
@@ -29,56 +33,6 @@
 			...serverData,
 			...newStemSeparations.filter((ns) => !serverData.find((s) => s.id === ns.id))
 		];
-	});
-
-	// SSE connection for stem separation updates
-	let eventSource: EventSource | null = null;
-
-	onMount(() => {
-		eventSource = new EventSource('/api/sse');
-		eventSource.onmessage = (event) => {
-			try {
-				const message = JSON.parse(event.data);
-				if (message.audioId === data.song.id && message.generationId === data.generation.id) {
-					if (message.type === 'stem_separation_update') {
-						// Update in-progress separation via update map - create new object to trigger reactivity
-						stemSeparationUpdates = {
-							...stemSeparationUpdates,
-							[message.stemSeparationId]: {
-								...stemSeparationUpdates[message.stemSeparationId],
-								...message.data
-							}
-						};
-					} else if (message.type === 'stem_separation_complete') {
-						// Update completed separation - create new object to trigger reactivity
-						stemSeparationUpdates = {
-							...stemSeparationUpdates,
-							[message.stemSeparationId]: {
-								...stemSeparationUpdates[message.stemSeparationId],
-								...message.data
-							}
-						};
-						separatingType = null;
-					} else if (message.type === 'stem_separation_error') {
-						// Update error status - create new object to trigger reactivity
-						stemSeparationUpdates = {
-							...stemSeparationUpdates,
-							[message.stemSeparationId]: {
-								...stemSeparationUpdates[message.stemSeparationId],
-								...message.data
-							}
-						};
-						separatingType = null;
-					}
-				}
-			} catch {
-				// Ignore parse errors
-			}
-		};
-	});
-
-	onDestroy(() => {
-		eventSource?.close();
 	});
 
 	// Get live activeProject from parent layout context (SSE-updated)
