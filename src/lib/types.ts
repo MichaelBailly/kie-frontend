@@ -3,6 +3,7 @@
 export interface Project {
 	id: number;
 	name: string;
+	is_open: boolean;
 	created_at: string;
 	updated_at: string;
 }

@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import {
 	getProject,
 	updateProjectName,
-	deleteProject,
+	setProjectOpen,
 	getGenerationsByProject
 } from '$lib/db.server';
 
@@ -22,25 +22,22 @@ export const GET: RequestHandler = async ({ params }) => {
 
 export const PATCH: RequestHandler = async ({ params, request }) => {
 	const id = parseInt(params.id);
-	const { name } = await request.json();
+	const body = await request.json();
 
 	const project = getProject(id);
 	if (!project) {
 		throw error(404, 'Project not found');
 	}
 
-	updateProjectName(id, name);
-	return json({ success: true });
-};
-
-export const DELETE: RequestHandler = async ({ params }) => {
-	const id = parseInt(params.id);
-
-	const project = getProject(id);
-	if (!project) {
-		throw error(404, 'Project not found');
+	// Update name if provided
+	if (body.name !== undefined) {
+		updateProjectName(id, body.name);
 	}
 
-	deleteProject(id);
+	// Update is_open if provided
+	if (body.is_open !== undefined) {
+		setProjectOpen(id, body.is_open);
+	}
+
 	return json({ success: true });
 };

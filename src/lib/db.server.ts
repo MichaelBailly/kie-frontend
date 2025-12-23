@@ -11,6 +11,7 @@ db.exec(`
 	CREATE TABLE IF NOT EXISTS projects (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL DEFAULT 'New Project',
+		is_open INTEGER NOT NULL DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
@@ -83,9 +84,19 @@ db.exec(`
 	CREATE INDEX IF NOT EXISTS idx_stem_separations_task_id ON stem_separations(task_id);
 `);
 
+// Migration: Add is_open column to existing projects table
+try {
+	db.exec(`ALTER TABLE projects ADD COLUMN is_open INTEGER NOT NULL DEFAULT 0`);
+	// Set all existing projects as open for backwards compatibility
+	db.exec(`UPDATE projects SET is_open = 1`);
+} catch {
+	// Column already exists, ignore error
+}
+
 export interface Project {
 	id: number;
 	name: string;
+	is_open: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -118,9 +129,21 @@ export interface Generation {
 }
 
 // Project operations
-export function createProject(name: string = 'New Project'): Project {
-	const stmt = db.prepare('INSERT INTO projects (name) VALUES (?) RETURNING *');
-	return stmt.get(name) as Project;
+export function createProject(name: string = 'New Project', isOpen: boolean = true): Project {
+	const stmt = db.prepare('INSERT INTO projects (name, is_open) VALUES (?, ?) RETURNING *');
+	return stmt.get(name, isOpen ? 1 : 0) as Project;
+}
+
+export function getOpenProjects(): Project[] {
+	const stmt = db.prepare('SELECT * FROM projects WHERE is_open = 1 ORDER BY updated_at DESC');
+	return stmt.all() as Project[];
+}
+
+export function setProjectOpen(id: number, isOpen: boolean): void {
+	const stmt = db.prepare(
+		'UPDATE projects SET is_open = ? WHERE id = ?'
+	);
+	stmt.run(isOpen ? 1 : 0, id);
 }
 
 export function getProject(id: number): Project | undefined {

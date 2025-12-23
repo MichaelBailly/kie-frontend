@@ -2,7 +2,6 @@
 	import type { LayoutData } from './$types';
 	import type { Project, Generation, SSEMessage, StemSeparation } from '$lib/types';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import ImportSongModal from '$lib/components/ImportSongModal.svelte';
 	import { onMount, onDestroy, setContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -14,7 +13,6 @@
 	// State
 	let projects = $state<(Project & { generations: Generation[] })[]>([]);
 	let eventSource: EventSource | null = null;
-	let showImportModal = $state(false);
 
 	// Initialize projects from data
 	$effect(() => {
@@ -56,6 +54,14 @@
 		const match = page.url.pathname.match(/\/projects\/\d+\/generations\/(\d+)/);
 		return match ? parseInt(match[1]) : null;
 	});
+
+	// Helper to get project URL - navigates to last generation if exists
+	function getProjectUrl(project: Project & { generations: Generation[] }): string {
+		if (project.generations.length > 0) {
+			return `/projects/${project.id}/generations/${project.generations[0].id}`;
+		}
+		return `/projects/${project.id}`;
+	}
 
 	// SSE connection for real-time updates
 	onMount(() => {
@@ -192,28 +198,27 @@
 
 	async function closeTab(projectId: number, event: Event) {
 		event.stopPropagation();
+		event.preventDefault();
 
-		if (projects.length <= 1) {
-			// Don't allow closing the last tab
-			return;
-		}
-
-		// Delete from server
+		// Mark project as closed on server
 		await fetch(`/api/projects/${projectId}`, {
-			method: 'DELETE'
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ is_open: false })
 		});
 
 		// Remove from local state
 		const projectIndex = projects.findIndex((p) => p.id === projectId);
 		projects = projects.filter((p) => p.id !== projectId);
 
-		// Navigate to appropriate project
-		let nextProject: Project | undefined;
+		// Navigate to appropriate project if we closed the active tab
 		if (projectId === activeProjectId) {
-			// If we're closing the active tab, navigate to another one
-			nextProject = projects[projectIndex] || projects[projectIndex - 1] || projects[0];
+			const nextProject = projects[projectIndex] || projects[projectIndex - 1] || projects[0];
 			if (nextProject) {
 				await goto(`/projects/${nextProject.id}`);
+			} else {
+				// No more open tabs, go to project management
+				await goto('/');
 			}
 		}
 	}
@@ -227,7 +232,7 @@
 		<div class="flex flex-1 items-center overflow-x-auto" role="tablist">
 			{#each projects as project (project.id)}
 				<a
-					href="/projects/{project.id}"
+					href={getProjectUrl(project)}
 					class="group relative flex max-w-[200px] min-w-0 shrink-0 items-center gap-2 border-r border-gray-200 px-4 py-3 text-sm font-medium transition-colors dark:border-gray-700 {project.id ===
 					activeProjectId
 						? 'bg-gray-100 text-indigo-600 dark:bg-gray-800 dark:text-indigo-400'
@@ -248,9 +253,8 @@
 					{#if project.generations.some( (g) => ['pending', 'processing', 'text_success', 'first_success'].includes(g.status) )}
 						<span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-500"></span>
 					{/if}
-					{#if projects.length > 1}
-						<button
-							onclick={(e) => closeTab(project.id, e)}
+					<button
+						onclick={(e) => closeTab(project.id, e)}
 							aria-label="Close tab"
 							class="ml-1 shrink-0 rounded-full p-0.5 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
 						>
@@ -263,7 +267,6 @@
 								/>
 							</svg>
 						</button>
-					{/if}
 					{#if project.id === activeProjectId}
 						<div
 							class="absolute right-0 bottom-0 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
@@ -273,22 +276,22 @@
 			{/each}
 		</div>
 
-		<!-- Import button -->
-		<button
-			onclick={() => (showImportModal = true)}
+		<!-- Projects link -->
+		<a
+			href="/"
 			class="flex h-full shrink-0 items-center gap-1.5 border-l border-gray-200 px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-			title="Import an existing song by Task ID"
+			title="View all projects"
 		>
 			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					stroke-width="2"
-					d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+					d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
 				/>
 			</svg>
-			<span class="hidden sm:inline">Import</span>
-		</button>
+			<span class="hidden sm:inline">Projects</span>
+		</a>
 
 		<!-- New tab button -->
 		<button
@@ -315,6 +318,3 @@
 		</div>
 	</div>
 </div>
-
-<!-- Import Song Modal -->
-<ImportSongModal bind:isOpen={showImportModal} onClose={() => (showImportModal = false)} />
